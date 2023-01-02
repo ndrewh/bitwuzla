@@ -379,6 +379,7 @@ beta_reduce(Bzla *bzla,
        * generation for extensionality */
       else if (bzla_node_is_lambda(real_cur) && cur_parent
                && (bzla_node_is_fun_eq(cur_parent)
+                   || bzla_node_is_update(cur_parent)
                    || bzla_node_is_fun_cond(cur_parent)))
       {
         assert(!bzla_node_param_get_assigned_exp(real_cur->e[0]));
@@ -464,6 +465,7 @@ beta_reduce(Bzla *bzla,
              * as argument */
             if (cur_parent
                 && (bzla_node_is_fun_eq(cur_parent)
+                    || bzla_node_is_update(cur_parent)
                     || (bzla_node_is_fun_cond(cur_parent)
                         && !bzla_node_param_get_assigned_exp(real_cur->e[0]))))
             {

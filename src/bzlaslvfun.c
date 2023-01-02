@@ -373,6 +373,7 @@ new_exp_layer_clone_for_dual_prop(Bzla *bzla,
 
   bzla_opt_set(clone, BZLA_OPT_PRODUCE_MODELS, 0);
   bzla_opt_set(clone, BZLA_OPT_INCREMENTAL, 1);
+  bzla_opt_set(clone, BZLA_OPT_PRINT_DIMACS, 1);
   //  bzla_opt_set (clone, BZLA_OPT_LOGLEVEL, 0);
   //  bzla_opt_set (clone, BZLA_OPT_VERBOSITY, 0);
   bzla_opt_set(clone, BZLA_OPT_FUN_DUAL_PROP, 0);

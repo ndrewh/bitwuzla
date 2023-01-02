@@ -617,7 +617,11 @@ dimacs_printer_sat(BzlaSATMgr *smgr, int32_t limit)
   BzlaCnfPrinter *printer  = (BzlaCnfPrinter *) smgr->solver;
   BzlaSATMgr *wrapped_smgr = printer->smgr;
 
-  print_dimacs(smgr);
+
+  if (bzla_opt_get(smgr->bzla, BZLA_OPT_PRINT_DIMACS))
+  {
+    print_dimacs(smgr);
+  }
 
   wrapped_smgr->inc_required = smgr->inc_required;
   wrapped_smgr->satcalls     = smgr->satcalls;

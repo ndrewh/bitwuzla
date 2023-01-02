@@ -4260,6 +4260,14 @@ bitwuzla_term_is_array(const BitwuzlaTerm *term)
       bzla_simplify_exp(bzla_node_get_bzla(bzla_term), bzla_term));
 }
 
+bool bitwuzla_substitute_ok(const BitwuzlaTerm *term) {
+  BZLA_CHECK_ARG_NOT_NULL(term);
+
+  BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
+  return !bzla_node_is_inverted(bzla_term)
+         && (bzla_node_is_var(bzla_term) || bzla_node_is_uf(bzla_term));
+}
+
 bool
 bitwuzla_term_is_const(const BitwuzlaTerm *term)
 {
