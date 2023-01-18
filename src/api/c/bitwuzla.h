@@ -3957,6 +3957,7 @@ void bitwuzla_term_dump(const BitwuzlaTerm *term,
                         FILE *file);
 
 bool bitwuzla_substitute_ok(const BitwuzlaTerm *term);
+void bitwuzla_set_is_array(const BitwuzlaTerm *term);
 /* -------------------------------------------------------------------------- */
 
 #if __cplusplus
