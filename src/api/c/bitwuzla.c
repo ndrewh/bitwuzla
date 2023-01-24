@@ -4688,3 +4688,21 @@ bitwuzla_add_output(Bitwuzla *bitwuzla, const BitwuzlaTerm *term)
 
   BZLA_PUSH_STACK(bzla->outputs, bzla_node_copy(bzla, bzla_term));
 }
+
+const char*
+bitwuzla_get_const_bv_value(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
+  BZLA_CHECK_ARG_NOT_NULL(term);
+
+  BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
+  assert(bzla_node_get_ext_refs(bzla_term));
+  bzla_term = bzla_simplify_exp(bzla_node_get_bzla(bzla_term), bzla_term);
+  assert(bzla_node_is_bv_const(bzla_term));
+  BzlaBitVector *bv = bzla_node_bv_const_get_bits(bzla_term);
+  if (bitwuzla->d_bv_value)
+  {
+    bzla_mem_freestr(bitwuzla->d_mm, bitwuzla->d_bv_value);
+  }
+  bitwuzla->d_bv_value    = bzla_bv_to_char(bitwuzla->d_mm, bv);
+
+  return bitwuzla->d_bv_value;
+}
