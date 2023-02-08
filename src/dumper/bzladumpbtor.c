@@ -898,6 +898,43 @@ bzla_dumpbtor_dump(Bzla *bzla, FILE *file, uint32_t version)
   bzla_dumpbtor_delete_dump_context(bdc);
 }
 
+void
+bzla_dumpbtor_dump_with_extra_node(Bzla *bzla, BzlaNode *extra, FILE *file) {
+  BzlaNode *tmp;
+  BzlaDumpContext *bdc;
+  BzlaPtrHashTableIterator it;
+
+  bdc          = bzla_dumpbtor_new_dump_context(bzla);
+  bdc->version = 1;  // NOTE: version 2 not yet supported
+
+  if (bzla->inconsistent)
+  {
+    tmp = bzla_exp_false(bzla);
+    bzla_dumpbtor_add_root_to_dump_context(bdc, tmp);
+    bzla_node_release(bzla, tmp);
+  }
+  else if (bzla->unsynthesized_constraints->count == 0
+           && bzla->synthesized_constraints->count == 0)
+  {
+    tmp = bzla_exp_true(bzla);
+    bzla_dumpbtor_add_root_to_dump_context(bdc, tmp);
+    bzla_node_release(bzla, tmp);
+  }
+  else
+  {
+    bzla_iter_hashptr_init(&it, bzla->unsynthesized_constraints);
+    bzla_iter_hashptr_queue(&it, bzla->synthesized_constraints);
+    while (bzla_iter_hashptr_has_next(&it))
+      bzla_dumpbtor_add_root_to_dump_context(bdc, bzla_iter_hashptr_next(&it));
+  }
+
+  // Add the extra node
+  bzla_dumpbtor_add_root_to_dump_context(bdc, extra);
+
+  bzla_dumpbtor_dump_bdc(bdc, file);
+  bzla_dumpbtor_delete_dump_context(bdc);
+}
+
 bool
 bzla_dumpbtor_can_be_dumped(Bzla *bzla)
 {

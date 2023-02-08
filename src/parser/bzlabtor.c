@@ -1,5 +1,4 @@
-/***
- * Bitwuzla: Satisfiability Modulo Theories (SMT) solver.
+/*** Bitwuzla: Satisfiability Modulo Theories (SMT) solver.
  *
  * This file is part of Bitwuzla.
  *
@@ -99,6 +98,9 @@ perr_btor(BzlaBZLAParser *parser, const char *fmt, ...)
     parser->error = bzla_mem_parse_error_msg(
         parser->mem, parser->infile_name, parser->lineno, 0, fmt, ap, bytes);
     va_end(ap);
+  }
+  if (parser->error) {
+    fprintf(stderr, "%s", parser->error);
   }
 
   return parser->error;
@@ -453,6 +455,9 @@ parse_array_exp(BzlaBZLAParser *parser, uint32_t width)
 {
   const BitwuzlaTerm *res = parse_exp(parser, width, true, false, 0);
   if (!res) return 0;
+  if (bitwuzla_term_is_fun(res) && !(bitwuzla_term_is_array(res))) {
+    bitwuzla_set_is_array(res);
+  }
   if (bitwuzla_term_is_array(res)) return res;
   (void) perr_btor(parser, "expected array expression");
   return 0;

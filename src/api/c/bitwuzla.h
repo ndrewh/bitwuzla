@@ -3956,6 +3956,8 @@ void bitwuzla_term_dump(const BitwuzlaTerm *term,
                         const char *format,
                         FILE *file);
 
+void bitwuzla_dump_formula_and_term_btor(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, FILE *file);
+
 bool bitwuzla_substitute_ok(const BitwuzlaTerm *term);
 void bitwuzla_set_is_array(const BitwuzlaTerm *term);
 const char* bitwuzla_get_const_bv_value(Bitwuzla *bitwuzla, const BitwuzlaTerm *term);

@@ -3384,6 +3384,13 @@ bitwuzla_dump_formula(Bitwuzla *bitwuzla, const char *format, FILE *file)
   }
 }
 
+void bitwuzla_dump_formula_and_term_btor(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, FILE *file) {
+    Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+    BZLA_ABORT(!bzla_dumpbtor_can_be_dumped(bzla), "Cannot dump UF terms");
+    BzlaNode *node =  bzla_simplify_exp(bzla, BZLA_IMPORT_BITWUZLA_TERM(term));
+    bzla_dumpbtor_dump_with_extra_node(bzla, node, file);
+}
+
 BitwuzlaResult
 bitwuzla_parse(Bitwuzla *bitwuzla,
                FILE *infile,
@@ -3435,6 +3442,7 @@ bitwuzla_parse_format(Bitwuzla *bitwuzla,
   BZLA_CHECK_ARG_NOT_NULL(parsed_status);
 
   Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+
   BZLA_ABORT(BZLA_COUNT_STACK(bzla->nodes_id_table) > 2,
              "file parsing after having created expressions is not allowed");
   int32_t bzla_res = 0;

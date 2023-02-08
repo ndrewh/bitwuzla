@@ -40,6 +40,8 @@ void bzla_dumpbtor_dump_node(Bzla *, FILE *, BzlaNode *);
 void bzla_dumpbtor_dump_nodes(Bzla *, FILE *, BzlaNode **, uint32_t);
 void bzla_dumpbtor_dump(Bzla *, FILE *, uint32_t);
 
+void bzla_dumpbtor_dump_with_extra_node(Bzla *bzla, BzlaNode *extra, FILE *file);
+
 /* FIXME: right now we cannot dump UF in BTOR as the format does not support UF
  *        yet */
 bool bzla_dumpbtor_can_be_dumped(Bzla *);

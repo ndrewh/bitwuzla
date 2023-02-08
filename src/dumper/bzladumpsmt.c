@@ -992,9 +992,9 @@ recursively_dump_exp_smt(BzlaSMTDumpContext *sdc,
 
         case BZLA_UPDATE_NODE:
           op = "store";
-          PUSH_DUMP_NODE(real_exp->e[2], 1, 0, 1, 0, depth + 1);
-          PUSH_DUMP_NODE(real_exp->e[1]->e[0], 1, 0, 1, 0, depth + 1);
-          PUSH_DUMP_NODE(real_exp->e[0], 1, 0, 1, 0, depth + 1);
+          /* PUSH_DUMP_NODE(real_exp->e[2], 1, 0, 1, 0, depth + 1); */
+          /* PUSH_DUMP_NODE(real_exp->e[1]->e[0], 1, 0, 1, 0, depth + 1); */
+          /* PUSH_DUMP_NODE(real_exp->e[0], 1, 0, 1, 0, depth + 1); */
           break;
 
         default:
