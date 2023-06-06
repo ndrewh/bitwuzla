@@ -767,10 +767,16 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
     BzlaNode *node = BZLA_PEEK_STACK(bdc->outputs, i);
     bdcrec(bdc, node, file);
     id = ++bdc->maxid;
+    if (bzla_sort_is_fun(bdc->bzla, bzla_node_get_sort_id(node)))
+      len = bzla_sort_bv_get_width(
+          bdc->bzla,
+          bzla_sort_fun_get_codomain(bdc->bzla, bzla_node_get_sort_id(node)));
+    else
+      len = bzla_node_bv_get_width(bdc->bzla, node);
     fprintf(file,
             "%d output %u %d\n",
             id,
-            bzla_node_bv_get_width(bdc->bzla, node),
+            len,
             bdcid(bdc, node));
   }
 
@@ -899,7 +905,7 @@ bzla_dumpbtor_dump(Bzla *bzla, FILE *file, uint32_t version)
 }
 
 void
-bzla_dumpbtor_dump_with_extra_node(Bzla *bzla, BzlaNode *extra, FILE *file) {
+bzla_dumpbtor_dump_with_extra_node(Bzla *bzla, BzlaNode *extra, BzlaNode *output, FILE *file) {
   BzlaNode *tmp;
   BzlaDumpContext *bdc;
   BzlaPtrHashTableIterator it;
@@ -930,6 +936,7 @@ bzla_dumpbtor_dump_with_extra_node(Bzla *bzla, BzlaNode *extra, FILE *file) {
 
   // Add the extra node
   bzla_dumpbtor_add_root_to_dump_context(bdc, extra);
+  bzla_dumpbtor_add_output_to_dump_context(bdc, output);
 
   bzla_dumpbtor_dump_bdc(bdc, file);
   bzla_dumpbtor_delete_dump_context(bdc);

@@ -706,6 +706,23 @@ parse_root(BzlaBZLAParser *parser, uint32_t width)
   }
   bitwuzla_assert(parser->bitwuzla, res);
   return res;
+
+}
+
+static const BitwuzlaTerm *
+parse_output(BzlaBZLAParser *parser, uint32_t width)
+{
+  const BitwuzlaTerm *res, *tmp;
+
+  if (parse_space(parser)) return 0;
+  if (!(res = parse_exp(parser, width, false, true, 0))) return 0;
+  if (width > 1)
+  {
+    tmp = res;
+    res = bitwuzla_mk_term1(parser->bitwuzla, BITWUZLA_KIND_BV_REDOR, tmp);
+  }
+  bitwuzla_set_output_term(parser->bitwuzla, res);
+  return res;
 }
 
 static const BitwuzlaTerm *
@@ -1667,6 +1684,7 @@ new_bzla_parser(Bitwuzla *bitwuzla)
   new_parser(res, parse_redxor, "redxor");
   new_parser(res, parse_rol, "rol");
   new_parser(res, parse_root, "root"); /* only in parser */
+  new_parser(res, parse_output, "output"); /* only in parser */
   new_parser(res, parse_ror, "ror");
   new_parser(res, parse_saddo, "saddo");
   new_parser(res, parse_sdivo, "sdivo");

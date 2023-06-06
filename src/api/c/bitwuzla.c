@@ -69,6 +69,9 @@ struct Bitwuzla
   Bzla *d_bzla;
   /* API memory manager. */
   BzlaMemMgr *d_mm;
+
+  /* bzla btor parser in parse_output */
+  const BitwuzlaTerm *d_output;
 };
 
 struct BitwuzlaSort
@@ -1008,6 +1011,7 @@ init(Bitwuzla *bitwuzla, BzlaMemMgr *mm)
   bitwuzla->d_bzla           = bzla_new();
   bitwuzla->d_bzla->bitwuzla = bitwuzla;
   bitwuzla->d_sort_map       = bzla_hashint_map_new(mm);
+  bitwuzla->d_output = 0;
   BZLA_INIT_STACK(mm, bitwuzla->d_assumptions);
   BZLA_INIT_STACK(mm, bitwuzla->d_unsat_assumptions);
   BZLA_INIT_STACK(mm, bitwuzla->d_unsat_core);
@@ -3384,11 +3388,12 @@ bitwuzla_dump_formula(Bitwuzla *bitwuzla, const char *format, FILE *file)
   }
 }
 
-void bitwuzla_dump_formula_and_term_btor(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, FILE *file) {
+void bitwuzla_dump_formula_and_term_btor(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm *output, FILE *file) {
     Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
     BZLA_ABORT(!bzla_dumpbtor_can_be_dumped(bzla), "Cannot dump UF terms");
     BzlaNode *node =  bzla_simplify_exp(bzla, BZLA_IMPORT_BITWUZLA_TERM(term));
-    bzla_dumpbtor_dump_with_extra_node(bzla, node, file);
+    BzlaNode *outn =  BZLA_IMPORT_BITWUZLA_TERM(output);
+    bzla_dumpbtor_dump_with_extra_node(bzla, node, outn, file);
 }
 
 BitwuzlaResult
@@ -4713,4 +4718,15 @@ bitwuzla_get_const_bv_value(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
   bitwuzla->d_bv_value    = bzla_bv_to_char(bitwuzla->d_mm, bv);
 
   return bitwuzla->d_bv_value;
+}
+void
+bitwuzla_set_output_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
+    Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+    BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
+    bitwuzla->d_output = term;
+    bzla_node_inc_ext_ref_counter(bzla, bzla_term);
+}
+const BitwuzlaTerm*
+bitwuzla_get_output_term(Bitwuzla *bitwuzla) {
+  return bitwuzla->d_output;
 }
