@@ -905,7 +905,7 @@ bzla_dumpbtor_dump(Bzla *bzla, FILE *file, uint32_t version)
 }
 
 void
-bzla_dumpbtor_dump_with_extra_node(Bzla *bzla, BzlaNode *extra, BzlaNode *output, FILE *file) {
+bzla_dumpbtor_dump_with_extra_node(Bzla *bzla, BzlaNode *extra, BzlaNode **output, int num_output, FILE *file) {
   BzlaNode *tmp;
   BzlaDumpContext *bdc;
   BzlaPtrHashTableIterator it;
@@ -936,7 +936,10 @@ bzla_dumpbtor_dump_with_extra_node(Bzla *bzla, BzlaNode *extra, BzlaNode *output
 
   // Add the extra node
   bzla_dumpbtor_add_root_to_dump_context(bdc, extra);
-  bzla_dumpbtor_add_output_to_dump_context(bdc, output);
+
+  for (int i=0; i<num_output; i++) {
+    bzla_dumpbtor_add_output_to_dump_context(bdc, output[i]);
+  }
 
   bzla_dumpbtor_dump_bdc(bdc, file);
   bzla_dumpbtor_delete_dump_context(bdc);

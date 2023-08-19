@@ -712,11 +712,11 @@ parse_root(BzlaBZLAParser *parser, uint32_t width)
 static const BitwuzlaTerm *
 parse_output(BzlaBZLAParser *parser, uint32_t width)
 {
-  const BitwuzlaTerm *res, *tmp;
+  const BitwuzlaTerm *res;
 
   if (parse_space(parser)) return 0;
   if (!(res = parse_exp(parser, width, true, true, 0))) return 0;
-  bitwuzla_set_output_term(parser->bitwuzla, res);
+  bitwuzla_add_output_term(parser->bitwuzla, res);
   return res;
 }
 

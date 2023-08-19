@@ -71,7 +71,7 @@ struct Bitwuzla
   BzlaMemMgr *d_mm;
 
   /* bzla btor parser in parse_output */
-  const BitwuzlaTerm *d_output;
+  BitwuzlaTermConstPtrStack d_output;
 };
 
 struct BitwuzlaSort
@@ -1011,7 +1011,7 @@ init(Bitwuzla *bitwuzla, BzlaMemMgr *mm)
   bitwuzla->d_bzla           = bzla_new();
   bitwuzla->d_bzla->bitwuzla = bitwuzla;
   bitwuzla->d_sort_map       = bzla_hashint_map_new(mm);
-  bitwuzla->d_output = 0;
+  BZLA_INIT_STACK(mm, bitwuzla->d_output);
   BZLA_INIT_STACK(mm, bitwuzla->d_assumptions);
   BZLA_INIT_STACK(mm, bitwuzla->d_unsat_assumptions);
   BZLA_INIT_STACK(mm, bitwuzla->d_unsat_core);
@@ -3388,12 +3388,17 @@ bitwuzla_dump_formula(Bitwuzla *bitwuzla, const char *format, FILE *file)
   }
 }
 
-void bitwuzla_dump_formula_and_term_btor(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm *output, FILE *file) {
+void bitwuzla_dump_formula_and_term_btor(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file) {
     Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
     BZLA_ABORT(!bzla_dumpbtor_can_be_dumped(bzla), "Cannot dump UF terms");
     BzlaNode *node =  bzla_simplify_exp(bzla, BZLA_IMPORT_BITWUZLA_TERM(term));
-    BzlaNode *outn =  BZLA_IMPORT_BITWUZLA_TERM(output);
-    bzla_dumpbtor_dump_with_extra_node(bzla, node, outn, file);
+
+    BzlaNode **output_list = malloc(sizeof(BzlaNode*) * num_output_terms);
+    for (int i=0; i<num_output_terms; i++) {
+        output_list[i] = BZLA_IMPORT_BITWUZLA_TERM(output_terms[i]);
+    }
+    bzla_dumpbtor_dump_with_extra_node(bzla, node, output_list, num_output_terms, file);
+    free(output_list);
 }
 
 BitwuzlaResult
@@ -4720,13 +4725,16 @@ bitwuzla_get_const_bv_value(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
   return bitwuzla->d_bv_value;
 }
 void
-bitwuzla_set_output_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
+bitwuzla_add_output_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
     Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
     BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
-    bitwuzla->d_output = term;
+    BZLA_PUSH_STACK(bitwuzla->d_output, term);
     bzla_node_inc_ext_ref_counter(bzla, bzla_term);
 }
 const BitwuzlaTerm*
-bitwuzla_get_output_term(Bitwuzla *bitwuzla) {
-  return bitwuzla->d_output;
+bitwuzla_get_output_term(Bitwuzla *bitwuzla, int i) {
+  if ((size_t)i >= BZLA_COUNT_STACK(bitwuzla->d_output)) {
+    return NULL;
+  }
+  return BZLA_PEEK_STACK(bitwuzla->d_output, i);
 }
