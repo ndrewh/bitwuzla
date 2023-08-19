@@ -766,7 +766,7 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
   {
     BzlaNode *node = BZLA_PEEK_STACK(bdc->outputs, i);
     if (bzla_node_is_proxy(node)) { // the parser doesn't support proxies (lol)
-      node = bzla_node_get_simplified(bdc->bzla, node);
+      node = node->simplified;
     }
     bdcrec(bdc, node, file);
     id = ++bdc->maxid;
