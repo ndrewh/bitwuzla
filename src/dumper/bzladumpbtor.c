@@ -765,14 +765,18 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
   for (i = 0; i < BZLA_COUNT_STACK(bdc->outputs); i++)
   {
     BzlaNode *node = BZLA_PEEK_STACK(bdc->outputs, i);
+    if (bzla_node_is_proxy(node)) { // the parser doesn't support proxies (lol)
+      node = bzla_node_get_simplified(bdc->bzla, node);
+    }
     bdcrec(bdc, node, file);
     id = ++bdc->maxid;
-    if (bzla_sort_is_fun(bdc->bzla, bzla_node_get_sort_id(node)))
+    if (bzla_sort_is_fun(bdc->bzla, bzla_node_get_sort_id(node))) {
       len = bzla_sort_bv_get_width(
           bdc->bzla,
           bzla_sort_fun_get_codomain(bdc->bzla, bzla_node_get_sort_id(node)));
-    else
+    } else {
       len = bzla_node_bv_get_width(bdc->bzla, node);
+    }
     fprintf(file,
             "%d output %u %d\n",
             id,
