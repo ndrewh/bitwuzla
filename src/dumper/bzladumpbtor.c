@@ -765,7 +765,7 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
   for (i = 0; i < BZLA_COUNT_STACK(bdc->outputs); i++)
   {
     BzlaNode *node = BZLA_PEEK_STACK(bdc->outputs, i);
-    if (bzla_node_is_proxy(node)) { // the parser doesn't support proxies (lol)
+    while (bzla_node_is_proxy(node)) { // the parser doesn't support proxies (lol)
       node = node->simplified;
     }
     bdcrec(bdc, node, file);
