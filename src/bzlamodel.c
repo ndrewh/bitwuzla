@@ -1203,12 +1203,12 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
       }
       else if (bzla_node_is_update(real_cur))
       {
-        BZLA_PUSH_STACK(work_stack, real_cur->e[0]);
-        BZLA_PUSH_STACK(work_stack, cur_parent);
-        BZLA_PUSH_STACK(work_stack, real_cur->e[1]);
-        BZLA_PUSH_STACK(work_stack, real_cur);
-        BZLA_PUSH_STACK(work_stack, real_cur->e[2]);
-        BZLA_PUSH_STACK(work_stack, real_cur);
+        BZLA_PUSH_STACK(work_stack, real_cur->e[0]); // child array
+        BZLA_PUSH_STACK(work_stack, cur_parent); // parent!
+        BZLA_PUSH_STACK(work_stack, real_cur->e[1]); // index
+        BZLA_PUSH_STACK(work_stack, real_cur); // update itself (parent)
+        BZLA_PUSH_STACK(work_stack, real_cur->e[2]); // value
+        BZLA_PUSH_STACK(work_stack, real_cur); // update itself (parent)
       }
       else if (bzla_node_is_apply(real_cur)
                && bzla_node_is_lambda(real_cur->e[0]))
@@ -1220,6 +1220,19 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
         BZLA_PUSH_STACK(work_stack, cur_parent);
         BZLA_PUSH_STACK(cleanup_expanded, next);
         bzla_hashint_table_add(expanded, real_cur->id);
+      }
+      else if (bzla_node_is_lambda(real_cur))
+      {
+        assert(bzla_node_is_apply(cur_parent));
+        BzlaNode *tmp_apply = bzla_exp_apply(bzla, real_cur, cur_parent->e[1]);
+
+        next  = bzla_beta_reduce_full(bzla, tmp_apply, 0);
+        assert(!bzla_node_real_addr(next)->parameterized);
+        next = bzla_node_cond_invert(cur, next);
+
+        // todo: can we release tmp_apply here?
+        BZLA_PUSH_STACK(work_stack, next);
+        BZLA_PUSH_STACK(work_stack, cur_parent);
       }
       /* For FP terms we need to ensure that we have word blasted them. */
       else if (!bzla_node_is_apply(real_cur)
@@ -1244,7 +1257,6 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
     {
       assert(!bzla_node_is_param(real_cur));
       assert(real_cur->arity <= BZLA_NODE_MAX_CHILDREN);
-      assert(!bzla_node_is_lambda(real_cur));
 
       /* Check if real_cur is an expanded FP fucntion application. */
       if (bzla_hashint_table_contains(expanded, real_cur->id))
@@ -1282,6 +1294,11 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
         num_args = bzla_node_args_get_arity(bzla, real_cur->e[1]);
         arg_stack.top -= 1;        /* value of apply */
         arg_stack.top -= num_args; /* arguments of apply */
+        md->as_int = 1;
+      }
+      else if (bzla_node_is_lambda(real_cur))
+      {
+        arg_stack.top -= 1;        /* value of apply */
         md->as_int = 1;
       }
       /* leave arguments on stack, we need them later for apply */
@@ -1422,6 +1439,10 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
             bzla_bv_free(mm, e[2]);
           bzla_bv_free(mm, e[1]);
           bzla_bv_free(mm, e[0]);
+          break;
+
+        case BZLA_LAMBDA_NODE:
+          result = e[0];
           break;
 
         default:
