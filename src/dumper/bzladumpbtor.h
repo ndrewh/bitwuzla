@@ -31,7 +31,6 @@ void bzla_dumpbtor_add_init_to_dump_context(BzlaDumpContext *,
                                             BzlaNode *);
 void bzla_dumpbtor_add_bad_to_dump_context(BzlaDumpContext *, BzlaNode *);
 void bzla_dumpbtor_add_output_to_dump_context(BzlaDumpContext *, BzlaNode *);
-void bzla_dumpbtor_add_stitch_to_dump_context(BzlaDumpContext *, BzlaNode *, BzlaNode *, int stitch_type);
 void bzla_dumpbtor_add_constraint_to_dump_context(BzlaDumpContext *,
                                                   BzlaNode *);
 void bzla_dumpbtor_add_root_to_dump_context(BzlaDumpContext *, BzlaNode *);

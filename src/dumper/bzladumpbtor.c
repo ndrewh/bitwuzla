@@ -46,9 +46,6 @@ struct BzlaDumpContext
   BzlaNodePtrStack roots;
   BzlaNodePtrStack work;
   BzlaPtrHashTable *no_dump;
-
-  BzlaNodePtrStack stitches;
-  BzlaIntStack stitch_types;
 };
 
 BzlaDumpContext *
@@ -79,8 +76,6 @@ bzla_dumpbtor_new_dump_context(Bzla *bzla)
   BZLA_INIT_STACK(bzla->mm, res->constraints);
   BZLA_INIT_STACK(bzla->mm, res->roots);
   BZLA_INIT_STACK(bzla->mm, res->work);
-  BZLA_INIT_STACK(bzla->mm, res->stitches);
-  BZLA_INIT_STACK(bzla->mm, res->stitch_types);
 
   return res;
 }
@@ -99,11 +94,6 @@ bzla_dumpbtor_delete_dump_context(BzlaDumpContext *bdc)
   while (!BZLA_EMPTY_STACK(bdc->outputs))
     bzla_node_release(bdc->bzla, BZLA_POP_STACK(bdc->outputs));
   BZLA_RELEASE_STACK(bdc->outputs);
-
-  while (!BZLA_EMPTY_STACK(bdc->stitches))
-    bzla_node_release(bdc->bzla, BZLA_POP_STACK(bdc->stitches));
-  BZLA_RELEASE_STACK(bdc->stitches);
-  BZLA_RELEASE_STACK(bdc->stitch_types);
 
   while (!BZLA_EMPTY_STACK(bdc->bads))
     bzla_node_release(bdc->bzla, BZLA_POP_STACK(bdc->bads));
@@ -210,14 +200,6 @@ bzla_dumpbtor_add_output_to_dump_context(BzlaDumpContext *bdc, BzlaNode *output)
 {
   (void) bzla_node_copy(bdc->bzla, output);
   BZLA_PUSH_STACK(bdc->outputs, output);
-}
-
-void bzla_dumpbtor_add_stitch_to_dump_context(BzlaDumpContext *bdc, BzlaNode *a, BzlaNode *b, int stitch_type) {
-  (void) bzla_node_copy(bdc->bzla, a);
-  (void) bzla_node_copy(bdc->bzla, b);
-  BZLA_PUSH_STACK(bdc->stitches, a);
-  BZLA_PUSH_STACK(bdc->stitches, b);
-  BZLA_PUSH_STACK(bdc->stitch_types, stitch_type);
 }
 
 void
@@ -800,24 +782,6 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
             id,
             len,
             bdcid(bdc, node));
-  }
-
-  for (i = 0; i < BZLA_COUNT_STACK(bdc->stitch_types); i++)
-  {
-    int stitch_type = BZLA_PEEK_STACK(bdc->stitch_types, i);
-    BzlaNode *node_a = BZLA_PEEK_STACK(bdc->stitches, i*2);
-    BzlaNode *node_b = BZLA_PEEK_STACK(bdc->stitches, i*2+1);
-    bdcrec(bdc, node_a, file);
-    bdcrec(bdc, node_b, file);
-    id = ++bdc->maxid;
-    len = 0;
-    fprintf(file,
-            "%d stitch %u %d %d %d\n",
-            id,
-            len,
-            bdcid(bdc, node_a),
-            bdcid(bdc, node_b),
-            stitch_type);
   }
 
   for (i = 0; i < BZLA_COUNT_STACK(bdc->bads); i++)

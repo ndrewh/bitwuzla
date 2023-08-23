@@ -3956,15 +3956,14 @@ void bitwuzla_term_dump(const BitwuzlaTerm *term,
                         const char *format,
                         FILE *file);
 
-void bitwuzla_dump_formula_and_term_btor(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file);
 
 bool bitwuzla_substitute_ok(const BitwuzlaTerm *term);
 void bitwuzla_set_is_array(const BitwuzlaTerm *term);
 const BitwuzlaTerm* bitwuzla_get_output_term(Bitwuzla *bitwuzla, int idx);
+int bitwuzla_get_num_outputs(Bitwuzla *bitwuzla);
 const char* bitwuzla_get_const_bv_value(Bitwuzla *bitwuzla, const BitwuzlaTerm *term);
+void bitwuzla_dump_formula_and_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file);
 
-int bitwuzla_get_num_stitches(Bitwuzla *bitwuzla);
-int bitwuzla_get_stitch(Bitwuzla *bitwuzla, int i, const BitwuzlaTerm** a, const BitwuzlaTerm** b);
 /* -------------------------------------------------------------------------- */
 
 #if __cplusplus

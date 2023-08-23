@@ -3384,7 +3384,7 @@ bitwuzla_dump_formula(Bitwuzla *bitwuzla, const char *format, FILE *file)
   }
 }
 
-void bitwuzla_dump_formula_and_term_btor(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file) {
+void bitwuzla_dump_formula_and_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file) {
     Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
     BZLA_ABORT(!bzla_dumpbtor_can_be_dumped(bzla), "Cannot dump UF terms");
     BzlaNode *node =  bzla_simplify_exp(bzla, BZLA_IMPORT_BITWUZLA_TERM(term));
@@ -4734,46 +4734,10 @@ bitwuzla_get_output_term(Bitwuzla *bitwuzla, int i) {
   BZLA_RETURN_BITWUZLA_TERM(res);
 }
 
-void
-bitwuzla_add_stitch_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *a, const BitwuzlaTerm *b, int stitch_type) {
-    Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
-    BzlaNode *t1 = BZLA_IMPORT_BITWUZLA_TERM(a);
-    BzlaNode *t2 = BZLA_IMPORT_BITWUZLA_TERM(b);
-
-    assert(bzla_node_get_ext_refs(t1));
-    assert(bzla_node_get_ext_refs(t2));
-    BZLA_CHECK_TERM_BZLA(bzla, t1);
-    BZLA_CHECK_TERM_BZLA(bzla, t2);
-
-    BZLA_PUSH_STACK(bzla->stitches, t1);
-    BZLA_PUSH_STACK(bzla->stitches, t2);
-    BZLA_PUSH_STACK(bzla->stitch_types, stitch_type);
-}
-
 int
-bitwuzla_get_num_stitches(Bitwuzla *bitwuzla) {
+bitwuzla_get_num_outputs(Bitwuzla *bitwuzla) {
   BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
   Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
-  return BZLA_COUNT_STACK(bzla->stitch_types);
+  return BZLA_COUNT_STACK(bzla->outputs);
 }
 
-int
-bitwuzla_get_stitch(Bitwuzla *bitwuzla, int i, const BitwuzlaTerm** a, const BitwuzlaTerm** b) {
-  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
-
-  Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
-
-  if ((size_t)i >= BZLA_COUNT_STACK(bzla->stitch_types)) {
-    return -1;
-  }
-  BzlaNode *node_a = BZLA_PEEK_STACK(bzla->stitches, 2*i);
-  BzlaNode *node_b = BZLA_PEEK_STACK(bzla->stitches, 2*i+1);
-
-  bzla_node_inc_ext_ref_counter(bzla, node_a);
-  *a = BZLA_EXPORT_BITWUZLA_TERM(node_a);
-  bzla_node_inc_ext_ref_counter(bzla, node_b);
-  *b = BZLA_EXPORT_BITWUZLA_TERM(node_b);
-
-  return BZLA_PEEK_STACK(bzla->stitch_types, i);
-
-}
