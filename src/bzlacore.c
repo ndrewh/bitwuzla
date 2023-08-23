@@ -687,6 +687,8 @@ bzla_new(void)
   BZLA_PUSH_STACK(bzla->nodes_id_table, 0);
   BZLA_INIT_STACK(bzla->mm, bzla->functions_with_model);
   BZLA_INIT_STACK(bzla->mm, bzla->outputs);
+  BZLA_INIT_STACK(bzla->mm, bzla->stitches);
+  BZLA_INIT_STACK(bzla->mm, bzla->stitch_types);
 
   bzla_opt_init_opts(bzla);
 
@@ -966,6 +968,11 @@ bzla_delete(Bzla *bzla)
   for (i = 0; i < BZLA_COUNT_STACK(bzla->outputs); i++)
     bzla_node_release(bzla, BZLA_PEEK_STACK(bzla->outputs, i));
   BZLA_RELEASE_STACK(bzla->outputs);
+
+  for (i = 0; i < BZLA_COUNT_STACK(bzla->stitches); i++)
+    bzla_node_release(bzla, BZLA_PEEK_STACK(bzla->stitches, i));
+  BZLA_RELEASE_STACK(bzla->stitches);
+  BZLA_RELEASE_STACK(bzla->stitch_types);
 
   BZLA_INIT_STACK(mm, stack);
   /* copy lambdas and push onto stack since bzla->lambdas does not hold a

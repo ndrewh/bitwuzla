@@ -709,6 +709,8 @@ parse_root(BzlaBZLAParser *parser, uint32_t width)
 
 }
 
+void bitwuzla_add_output(Bitwuzla *bitwuzla, const BitwuzlaTerm *term);
+
 static const BitwuzlaTerm *
 parse_output(BzlaBZLAParser *parser, uint32_t width)
 {
@@ -716,8 +718,25 @@ parse_output(BzlaBZLAParser *parser, uint32_t width)
 
   if (parse_space(parser)) return 0;
   if (!(res = parse_exp(parser, width, true, true, 0))) return 0;
-  bitwuzla_add_output_term(parser->bitwuzla, res);
+  bitwuzla_add_output(parser->bitwuzla, res);
   return res;
+}
+
+void bitwuzla_add_stitch_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *a, const BitwuzlaTerm *b, int stitch_type);
+
+static const BitwuzlaTerm *
+parse_stitch(BzlaBZLAParser *parser, uint32_t width)
+{
+  const BitwuzlaTerm *a, *b;
+  uint32_t stitch_type;
+
+  if (parse_space(parser)) return 0;
+  if (!(a = parse_exp(parser, width, true, true, 0))) return 0;
+  if (!(b = parse_exp(parser, width, true, true, 0))) return 0;
+  if (parse_non_negative_int(parser, &stitch_type)) return 0;
+  bitwuzla_add_stitch_term(parser->bitwuzla, a, b, stitch_type);
+
+  return a; // return value should not matter
 }
 
 static const BitwuzlaTerm *
@@ -1680,6 +1699,7 @@ new_bzla_parser(Bitwuzla *bitwuzla)
   new_parser(res, parse_rol, "rol");
   new_parser(res, parse_root, "root"); /* only in parser */
   new_parser(res, parse_output, "output"); /* only in parser */
+  new_parser(res, parse_stitch, "stitch"); /* only in parser */
   new_parser(res, parse_ror, "ror");
   new_parser(res, parse_saddo, "saddo");
   new_parser(res, parse_sdivo, "sdivo");

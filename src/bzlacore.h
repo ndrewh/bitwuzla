@@ -108,6 +108,9 @@ struct Bzla
   BzlaNodePtrStack functions_with_model;
   BzlaNodePtrStack outputs; /* used to synthesize BTOR2 outputs */
 
+  BzlaNodePtrStack stitches; /* used to synthesize BTOR2 outputs */
+  BzlaIntStack stitch_types; /* used to synthesize BTOR2 outputs */
+
   uint32_t rec_rw_calls; /* calls for recursive rewriting */
   uint32_t valid_assignments;
   BzlaRwCache *rw_cache;

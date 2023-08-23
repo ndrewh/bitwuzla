@@ -69,9 +69,6 @@ struct Bitwuzla
   Bzla *d_bzla;
   /* API memory manager. */
   BzlaMemMgr *d_mm;
-
-  /* bzla btor parser in parse_output */
-  BitwuzlaTermConstPtrStack d_output;
 };
 
 struct BitwuzlaSort
@@ -1011,7 +1008,6 @@ init(Bitwuzla *bitwuzla, BzlaMemMgr *mm)
   bitwuzla->d_bzla           = bzla_new();
   bitwuzla->d_bzla->bitwuzla = bitwuzla;
   bitwuzla->d_sort_map       = bzla_hashint_map_new(mm);
-  BZLA_INIT_STACK(mm, bitwuzla->d_output);
   BZLA_INIT_STACK(mm, bitwuzla->d_assumptions);
   BZLA_INIT_STACK(mm, bitwuzla->d_unsat_assumptions);
   BZLA_INIT_STACK(mm, bitwuzla->d_unsat_core);
@@ -4724,17 +4720,32 @@ bitwuzla_get_const_bv_value(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
 
   return bitwuzla->d_bv_value;
 }
-void
-bitwuzla_add_output_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
-    Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
-    BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
-    BZLA_PUSH_STACK(bitwuzla->d_output, term);
-    bzla_node_inc_ext_ref_counter(bzla, bzla_term);
-}
+
 const BitwuzlaTerm*
 bitwuzla_get_output_term(Bitwuzla *bitwuzla, int i) {
-  if ((size_t)i >= BZLA_COUNT_STACK(bitwuzla->d_output)) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+
+  Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
+
+  if ((size_t)i >= BZLA_COUNT_STACK(bzla->outputs)) {
     return NULL;
   }
-  return BZLA_PEEK_STACK(bitwuzla->d_output, i);
+  BzlaNode *res = BZLA_PEEK_STACK(bzla->outputs, i);
+  BZLA_RETURN_BITWUZLA_TERM(res);
+}
+
+void
+bitwuzla_add_stitch_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *a, const BitwuzlaTerm *b, int stitch_type) {
+    Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+    BzlaNode *t1 = BZLA_IMPORT_BITWUZLA_TERM(a);
+    BzlaNode *t2 = BZLA_IMPORT_BITWUZLA_TERM(b);
+
+    assert(bzla_node_get_ext_refs(t1));
+    assert(bzla_node_get_ext_refs(t2));
+    BZLA_CHECK_TERM_BZLA(bzla, t1);
+    BZLA_CHECK_TERM_BZLA(bzla, t2);
+
+    BZLA_PUSH_STACK(bzla->stitches, t1);
+    BZLA_PUSH_STACK(bzla->stitches, t2);
+    BZLA_PUSH_STACK(bzla->stitch_types, stitch_type);
 }

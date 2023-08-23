@@ -46,6 +46,9 @@ struct BzlaDumpContext
   BzlaNodePtrStack roots;
   BzlaNodePtrStack work;
   BzlaPtrHashTable *no_dump;
+
+  BzlaNodePtrStack stitches;
+  BzlaIntStack stitch_types;
 };
 
 BzlaDumpContext *
@@ -76,6 +79,8 @@ bzla_dumpbtor_new_dump_context(Bzla *bzla)
   BZLA_INIT_STACK(bzla->mm, res->constraints);
   BZLA_INIT_STACK(bzla->mm, res->roots);
   BZLA_INIT_STACK(bzla->mm, res->work);
+  BZLA_INIT_STACK(bzla->mm, res->stitches);
+  BZLA_INIT_STACK(bzla->mm, res->stitch_types);
 
   return res;
 }
@@ -94,6 +99,11 @@ bzla_dumpbtor_delete_dump_context(BzlaDumpContext *bdc)
   while (!BZLA_EMPTY_STACK(bdc->outputs))
     bzla_node_release(bdc->bzla, BZLA_POP_STACK(bdc->outputs));
   BZLA_RELEASE_STACK(bdc->outputs);
+
+  while (!BZLA_EMPTY_STACK(bdc->stitches))
+    bzla_node_release(bdc->bzla, BZLA_POP_STACK(bdc->stitches));
+  BZLA_RELEASE_STACK(bdc->stitches);
+  BZLA_RELEASE_STACK(bdc->stitch_types);
 
   while (!BZLA_EMPTY_STACK(bdc->bads))
     bzla_node_release(bdc->bzla, BZLA_POP_STACK(bdc->bads));
@@ -200,6 +210,14 @@ bzla_dumpbtor_add_output_to_dump_context(BzlaDumpContext *bdc, BzlaNode *output)
 {
   (void) bzla_node_copy(bdc->bzla, output);
   BZLA_PUSH_STACK(bdc->outputs, output);
+}
+
+void bzla_dumpbtor_add_stitch_to_dump_context(BzlaDumpContext *bdc, BzlaNode *a, BzlaNode *b, int stitch_type) {
+  (void) bzla_node_copy(bdc->bzla, a);
+  (void) bzla_node_copy(bdc->bzla, b);
+  BZLA_PUSH_STACK(bdc->stitches, a);
+  BZLA_PUSH_STACK(bdc->stitches, b);
+  BZLA_PUSH_STACK(bdc->stitch_types, stitch_type);
 }
 
 void
@@ -783,6 +801,28 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
             len,
             bdcid(bdc, node));
   }
+
+  /* for (i = 0; i < BZLA_COUNT_STACK(bdc->stitch_types); i++) */
+  /* { */
+  /*   BzlaNode *node = BZLA_PEEK_STACK(bdc->outputs, i); */
+  /*   while (bzla_node_is_proxy(node)) { // the parser doesn't support proxies (lol) */
+  /*     node = node->simplified; */
+  /*   } */
+  /*   bdcrec(bdc, node, file); */
+  /*   id = ++bdc->maxid; */
+  /*   if (bzla_sort_is_fun(bdc->bzla, bzla_node_get_sort_id(node))) { */
+  /*     len = bzla_sort_bv_get_width( */
+  /*         bdc->bzla, */
+  /*         bzla_sort_fun_get_codomain(bdc->bzla, bzla_node_get_sort_id(node))); */
+  /*   } else { */
+  /*     len = bzla_node_bv_get_width(bdc->bzla, node); */
+  /*   } */
+  /*   fprintf(file, */
+  /*           "%d output %u %d\n", */
+  /*           id, */
+  /*           len, */
+  /*           bdcid(bdc, node)); */
+  /* } */
 
   for (i = 0; i < BZLA_COUNT_STACK(bdc->bads); i++)
   {
