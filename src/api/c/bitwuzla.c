@@ -4749,3 +4749,31 @@ bitwuzla_add_stitch_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *a, const Bitwuz
     BZLA_PUSH_STACK(bzla->stitches, t2);
     BZLA_PUSH_STACK(bzla->stitch_types, stitch_type);
 }
+
+int
+bitwuzla_get_num_stitches(Bitwuzla *bitwuzla) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+  Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  return BZLA_COUNT_STACK(bzla->stitch_types);
+}
+
+int
+bitwuzla_get_stitch(Bitwuzla *bitwuzla, int i, const BitwuzlaTerm** a, const BitwuzlaTerm** b) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+
+  Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
+
+  if ((size_t)i >= BZLA_COUNT_STACK(bzla->stitch_types)) {
+    return -1;
+  }
+  BzlaNode *node_a = BZLA_PEEK_STACK(bzla->stitches, 2*i);
+  BzlaNode *node_b = BZLA_PEEK_STACK(bzla->stitches, 2*i+1);
+
+  bzla_node_inc_ext_ref_counter(bzla, node_a);
+  *a = BZLA_EXPORT_BITWUZLA_TERM(node_a);
+  bzla_node_inc_ext_ref_counter(bzla, node_b);
+  *b = BZLA_EXPORT_BITWUZLA_TERM(node_b);
+
+  return BZLA_PEEK_STACK(bzla->stitch_types, i);
+
+}

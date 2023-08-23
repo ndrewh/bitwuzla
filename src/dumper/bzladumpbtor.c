@@ -802,27 +802,23 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
             bdcid(bdc, node));
   }
 
-  /* for (i = 0; i < BZLA_COUNT_STACK(bdc->stitch_types); i++) */
-  /* { */
-  /*   BzlaNode *node = BZLA_PEEK_STACK(bdc->outputs, i); */
-  /*   while (bzla_node_is_proxy(node)) { // the parser doesn't support proxies (lol) */
-  /*     node = node->simplified; */
-  /*   } */
-  /*   bdcrec(bdc, node, file); */
-  /*   id = ++bdc->maxid; */
-  /*   if (bzla_sort_is_fun(bdc->bzla, bzla_node_get_sort_id(node))) { */
-  /*     len = bzla_sort_bv_get_width( */
-  /*         bdc->bzla, */
-  /*         bzla_sort_fun_get_codomain(bdc->bzla, bzla_node_get_sort_id(node))); */
-  /*   } else { */
-  /*     len = bzla_node_bv_get_width(bdc->bzla, node); */
-  /*   } */
-  /*   fprintf(file, */
-  /*           "%d output %u %d\n", */
-  /*           id, */
-  /*           len, */
-  /*           bdcid(bdc, node)); */
-  /* } */
+  for (i = 0; i < BZLA_COUNT_STACK(bdc->stitch_types); i++)
+  {
+    int stitch_type = BZLA_PEEK_STACK(bdc->stitch_types, i);
+    BzlaNode *node_a = BZLA_PEEK_STACK(bdc->stitches, i*2);
+    BzlaNode *node_b = BZLA_PEEK_STACK(bdc->stitches, i*2+1);
+    bdcrec(bdc, node_a, file);
+    bdcrec(bdc, node_b, file);
+    id = ++bdc->maxid;
+    len = 0;
+    fprintf(file,
+            "%d stitch %u %d %d %d\n",
+            id,
+            len,
+            bdcid(bdc, node_a),
+            bdcid(bdc, node_b),
+            stitch_type);
+  }
 
   for (i = 0; i < BZLA_COUNT_STACK(bdc->bads); i++)
   {
