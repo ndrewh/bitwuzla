@@ -106,6 +106,19 @@ bzla_check_model(BzlaCheckModelContext *ctx)
    * from the previous run */
   if (clone->valid_assignments) bzla_reset_incremental_usage(clone);
 
+  /* BzlaIntHashTableIterator tmp_it; */
+  /* BzlaBitVector *tmp1, *tmp2; */
+  /* int32_t id; */
+
+  /* bzla_iter_hashint_init(&tmp_it, bzla->bv_model); */
+  /* while (bzla_iter_hashint_has_next(&tmp_it)) */
+  /* { */
+  /*   id  = bzla_iter_hashint_next(&tmp_it); */
+  /*   tmp1  = bzla_hashint_map_get(bzla->bv_model, id)->as_ptr; */
+  /*   printf("model value %d: ", id); */
+  /*   bzla_bv_print(tmp1); */
+  /* } */
+
   /* add assumptions as assertions */
   bzla_fixate_assumptions(clone);
 

@@ -1128,26 +1128,26 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
     if (bzla_hashint_map_contains(bv_model, real_cur->id)) goto PUSH_CACHED;
 
     /* check if we already have an assignment for this function application */
-    if (bzla_node_is_lambda(real_cur) && cur_parent
-        && bzla_node_is_apply(cur_parent)
-        /* if real_cur was assigned by cur_parent, we are not allowed to use
-         * a cached result, but instead rebuild cur_parent */
-        && (!(d = bzla_hashint_map_get(assigned, real_cur->id))
-            || d->as_ptr != cur_parent))
-    {
-      num_args = bzla_node_args_get_arity(bzla, cur_parent->e[1]);
-      e        = (BzlaBitVector **) arg_stack.top - num_args;
+    /* if (bzla_node_is_lambda(real_cur) && cur_parent */
+    /*     && bzla_node_is_apply(cur_parent) */
+    /*     /1* if real_cur was assigned by cur_parent, we are not allowed to use */
+    /*      * a cached result, but instead rebuild cur_parent *1/ */
+    /*     && (!(d = bzla_hashint_map_get(assigned, real_cur->id)) */
+    /*         || d->as_ptr != cur_parent)) */
+    /* { */
+    /*   num_args = bzla_node_args_get_arity(bzla, cur_parent->e[1]); */
+    /*   e        = (BzlaBitVector **) arg_stack.top - num_args; */
 
-      t = bzla_bv_new_tuple(mm, num_args);
-      for (i = 0; i < num_args; i++)
-        bzla_bv_add_to_tuple(mm, t, e[i], num_args - 1 - i);
+    /*   t = bzla_bv_new_tuple(mm, num_args); */
+    /*   for (i = 0; i < num_args; i++) */
+    /*     bzla_bv_add_to_tuple(mm, t, e[i], num_args - 1 - i); */
 
-      /* check if there is already a value for given arguments */
-      result = get_value_from_fun_model(bzla, fun_model, cur_parent->e[0], t);
-      bzla_bv_free_tuple(mm, t);
+    /*   /1* check if there is already a value for given arguments *1/ */
+    /*   result = get_value_from_fun_model(bzla, fun_model, cur_parent->e[0], t); */
+    /*   bzla_bv_free_tuple(mm, t); */
 
-      if (result) goto PUSH_RESULT;
-    }
+    /*   if (result) goto PUSH_RESULT; */
+    /* } */
 
     md = bzla_hashint_map_get(mark, real_cur->id);
     if (!md)
@@ -1228,11 +1228,13 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
 
         next  = bzla_beta_reduce_full(bzla, tmp_apply, 0);
         assert(!bzla_node_real_addr(next)->parameterized);
-        next = bzla_node_cond_invert(cur, next);
+        next = bzla_node_cond_invert(cur_parent, next);
 
         // todo: can we release tmp_apply here?
         BZLA_PUSH_STACK(work_stack, next);
         BZLA_PUSH_STACK(work_stack, cur_parent);
+
+        BZLA_PUSH_STACK(cleanup_expanded, next);
       }
       /* For FP terms we need to ensure that we have word blasted them. */
       else if (!bzla_node_is_apply(real_cur)
@@ -1443,6 +1445,9 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
 
         case BZLA_LAMBDA_NODE:
           result = e[0];
+
+          /* printf("Lambda %d (apply %d) value: ", real_cur->id, cur_parent->id); */
+          /* bzla_bv_print(result); */
           break;
 
         default:
