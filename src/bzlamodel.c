@@ -1232,7 +1232,7 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
 
         // todo: can we release tmp_apply here?
         BZLA_PUSH_STACK(work_stack, next);
-        BZLA_PUSH_STACK(work_stack, cur_parent);
+        BZLA_PUSH_STACK(work_stack, 0);
 
         BZLA_PUSH_STACK(cleanup_expanded, next);
       }
@@ -1492,6 +1492,7 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
       {
         /* not inserted into cache */
         bzla_hashint_map_remove(mark, real_cur->id, 0);
+        assert(!real_cur->parameterized);
         if (real_cur->parameterized) goto PUSH_RESULT;
       }
 
