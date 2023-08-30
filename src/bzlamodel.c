@@ -1230,11 +1230,11 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
         assert(!bzla_node_real_addr(next)->parameterized);
         next = bzla_node_cond_invert(cur_parent, next);
 
-        // todo: can we release tmp_apply here?
         BZLA_PUSH_STACK(work_stack, next);
         BZLA_PUSH_STACK(work_stack, 0);
 
         BZLA_PUSH_STACK(cleanup_expanded, next);
+        bzla_node_release(bzla, tmp_apply);
       }
       /* For FP terms we need to ensure that we have word blasted them. */
       else if (!bzla_node_is_apply(real_cur)
