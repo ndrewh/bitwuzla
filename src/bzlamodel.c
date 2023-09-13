@@ -1234,6 +1234,7 @@ bzla_model_recursively_compute_assignment(Bzla *bzla,
         BZLA_PUSH_STACK(work_stack, next);
         BZLA_PUSH_STACK(work_stack, 0);
 
+        BZLA_PUSH_STACK(cleanup_expanded, tmp_apply);
         BZLA_PUSH_STACK(cleanup_expanded, next);
       }
       /* For FP terms we need to ensure that we have word blasted them. */

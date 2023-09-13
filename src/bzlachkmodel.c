@@ -76,7 +76,7 @@ bzla_check_model(BzlaCheckModelContext *ctx)
   const BzlaPtrHashTable *fmodel;
   const BzlaBitVector *value;
   BzlaBitVectorTuple *args_tuple;
-  BzlaNodePtrStack consts;
+  BzlaNodePtrStack consts, assertions;
 
   bzla = ctx->bzla;
 
@@ -124,6 +124,7 @@ bzla_check_model(BzlaCheckModelContext *ctx)
 
   /* add bit vector variable models */
   BZLA_INIT_STACK(clone->mm, consts);
+  BZLA_INIT_STACK(clone->mm, assertions);
   bzla_iter_hashptr_init(&it, ctx->inputs);
   while (bzla_iter_hashptr_has_next(&it))
   {
@@ -177,6 +178,7 @@ bzla_check_model(BzlaCheckModelContext *ctx)
         BZLALOG(2, "  value: %s", bzla_util_node2string(model));
 
         bzla_assert_exp(clone, eq);
+
         bzla_node_release(clone, eq);
         bzla_node_release(clone, model);
         bzla_node_release(clone, apply);
@@ -199,7 +201,15 @@ bzla_check_model(BzlaCheckModelContext *ctx)
               bzla_util_node2string(model));
 
       eq = bzla_exp_eq(clone, simp_clone, model);
+      BZLA_PUSH_STACK(assertions, eq);
       bzla_assert_exp(clone, eq);
+
+      /* sat_res = bzla_check_sat(clone, -1, -1); */
+      /* if (sat_res == BZLA_RESULT_UNSAT) { */
+      /*   fprintf(stdout, "node made unsat:\n%s == %s\n", bzla_util_node2string(simp_clone)); */
+      /*   BZLA_ABORT(sat_res == BZLA_RESULT_UNSAT, "invalid model"); */
+      /* } */
+
       bzla_node_release(clone, eq);
       bzla_node_release(clone, model);
     }
@@ -207,6 +217,21 @@ bzla_check_model(BzlaCheckModelContext *ctx)
   BZLA_RELEASE_STACK(consts);
 
   sat_res = bzla_check_sat(clone, -1, -1);
+  if (sat_res == BZLA_RESULT_UNSAT) {
+    for (uint32_t i = 0; i < BZLA_COUNT_STACK(assertions); i++)
+    {
+      BzlaNode *cur = BZLA_PEEK_STACK(assertions, i);
+      if (cur == NULL) continue;
+
+      if (bzla_failed_exp(clone, cur))
+      {
+        fprintf(stdout, "node in unsat core:\n");
+        bzla_dumpbtor_dump_node(clone, stdout, bzla_simplify_exp(clone, cur));
+      }
+    }
+  }
+  BZLA_RELEASE_STACK(assertions);
+
   BZLA_ABORT(sat_res == BZLA_RESULT_UNSAT, "invalid model");
   BZLALOG(1, "end check model");
 }
@@ -230,6 +255,7 @@ bzla_check_model_init(Bzla *bzla)
   bzla_set_term(ctx->clone, 0, 0);
 
   bzla_opt_set(ctx->clone, BZLA_OPT_ENGINE, BZLA_ENGINE_FUN);
+  bzla_opt_set(ctx->clone, BZLA_OPT_PRODUCE_UNSAT_CORES, 1);
   if (ctx->clone->slv)
   {
     ctx->clone->slv->api.delet(ctx->clone->slv);
