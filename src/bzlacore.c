@@ -963,8 +963,10 @@ bzla_delete(Bzla *bzla)
     bzla_node_release(bzla, BZLA_PEEK_STACK(bzla->functions_with_model, i));
   BZLA_RELEASE_STACK(bzla->functions_with_model);
 
-  for (i = 0; i < BZLA_COUNT_STACK(bzla->outputs); i++)
+  for (i = 0; i < BZLA_COUNT_STACK(bzla->outputs); i++) {
+    bzla_node_dec_ext_ref_counter(bzla, BZLA_PEEK_STACK(bzla->outputs, i));
     bzla_node_release(bzla, BZLA_PEEK_STACK(bzla->outputs, i));
+  }
   BZLA_RELEASE_STACK(bzla->outputs);
 
   BZLA_INIT_STACK(mm, stack);

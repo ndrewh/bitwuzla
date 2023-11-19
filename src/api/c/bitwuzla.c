@@ -4286,8 +4286,11 @@ void bitwuzla_set_is_array(const BitwuzlaTerm *term) {
   BZLA_CHECK_ARG_NOT_NULL(term);
 
   BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
-  BZLA_ABORT(!bzla_node_is_fun(bzla_term), "bitwuzla_set_is_array on non-function");
 
+  if (!bzla_node_is_fun(bzla_term)) {
+     bitwuzla_term_dump(term, "btor", stderr);
+  }
+  BZLA_CHECK_TERM_IS_FUN(bzla_term)
   bzla_term->is_array = true;
 }
 
@@ -4703,6 +4706,7 @@ bitwuzla_add_output(Bitwuzla *bitwuzla, const BitwuzlaTerm *term)
   BZLA_CHECK_TERM_BZLA(bzla, bzla_term);
 
   BZLA_PUSH_STACK(bzla->outputs, bzla_node_copy(bzla, bzla_term));
+  bzla_node_inc_ext_ref_counter(bzla, bzla_term);
 }
 
 const char*
@@ -4733,7 +4737,7 @@ bitwuzla_get_output_term(Bitwuzla *bitwuzla, int i) {
     return NULL;
   }
   BzlaNode *res = BZLA_PEEK_STACK(bzla->outputs, i);
-  BZLA_RETURN_BITWUZLA_TERM(res);
+  return BZLA_EXPORT_BITWUZLA_TERM(res);
 }
 
 int
