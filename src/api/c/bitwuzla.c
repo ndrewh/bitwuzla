@@ -4286,6 +4286,8 @@ void bitwuzla_set_is_array(const BitwuzlaTerm *term) {
   BZLA_CHECK_ARG_NOT_NULL(term);
 
   BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
+  BZLA_ABORT(!bzla_node_is_fun(bzla_term), "bitwuzla_set_is_array on non-function");
+
   bzla_term->is_array = true;
 }
 
