@@ -24,6 +24,7 @@
 #include "utils/bzlaabort.h"
 #include "utils/bzlanodeiter.h"
 #include "utils/bzlautil.h"
+#include "ccadical.h"
 
 /* -------------------------------------------------------------------------- */
 
@@ -4745,5 +4746,52 @@ bitwuzla_get_num_outputs(Bitwuzla *bitwuzla) {
   BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
   Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
   return BZLA_COUNT_STACK(bzla->outputs);
+}
+
+// This is UNSOUND! There are two problems:
+// 1. the SAT formula does not contain all the array constraints (maybe try checker in bzlacheckmodel.c afterwards?)
+// 2. being able to flip all the bits individually does not imply that all of the bits are unconstrained (they may not be
+// flippable all at once, for example)
+int bitwuzla_is_term_unconstrained(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
+    assert(bitwuzla_term_is_const(term));
+
+    Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
+    assert(bzla_opt_get(bzla, BZLA_OPT_SAT_ENGINE) == BZLA_SAT_ENGINE_CADICAL);
+
+    BzlaSATMgr *smgr = bzla_get_sat_mgr(bzla);
+    CCaDiCaL *solver = smgr->solver;
+
+    BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
+    BzlaNode *real_exp, *exp;
+    exp      = bzla_node_get_simplified(bzla, bzla_term);
+    real_exp = bzla_node_real_addr(exp);
+
+    if (!real_exp->av) return true;
+
+    uint32_t i, j, width;
+    BzlaAIGVec *av;
+
+    av    = real_exp->av;
+    width = av->width;
+
+    bool fail = false;
+    for (i = 0, j = width - 1; i < width; i++, j--)
+    {
+        BzlaAIG *aig = av->aigs[j];
+        if (aig == BZLA_AIG_TRUE || aig == BZLA_AIG_FALSE) {
+            fail = true;
+            break;
+        }
+        if (BZLA_REAL_ADDR_AIG(aig)->cnf_id > 0) {
+            int cnf_id = BZLA_REAL_ADDR_AIG(aig)->cnf_id;
+            int lit = ccadical_deref(solver, cnf_id);
+            if (!ccadical_flippable(solver, lit)) {
+                fail = true;
+                break;
+            }
+        } // note: else is OK -- if it wasn't encoded to AIG then it is unconstrained
+    }
+
+    return !fail;
 }
 
