@@ -1025,8 +1025,9 @@ bzla_delete(Bzla *bzla)
   BZLA_RELEASE_SORT_UNIQUE_TABLE(mm, bzla->sorts_unique_table);
 
   bzla_iter_hashptr_init(&it, bzla->node2symbol);
-  while (bzla_iter_hashptr_has_next(&it))
-    bzla_mem_freestr(bzla->mm, (char *) bzla_iter_hashptr_next_data(&it));
+  while (bzla_iter_hashptr_has_next(&it)) {
+    bzla_mem_freestr(bzla->mm, bzla_iter_hashptr_next_data(&it)->as_str);
+  }
   bzla_hashptr_table_delete(bzla->node2symbol);
 
   bzla_hashptr_table_delete(bzla->bv_vars);
