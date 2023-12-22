@@ -3965,6 +3965,7 @@ const BitwuzlaTerm* bitwuzla_get_output_term(Bitwuzla *bitwuzla, int idx);
 int bitwuzla_get_num_outputs(Bitwuzla *bitwuzla);
 const char* bitwuzla_get_const_bv_value(Bitwuzla *bitwuzla, const BitwuzlaTerm *term);
 void bitwuzla_dump_formula_and_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file);
+void bitwuzla_optimistic(Bitwuzla *bitwuzla, const BitwuzlaTerm *keep);
 
 /* -------------------------------------------------------------------------- */
 

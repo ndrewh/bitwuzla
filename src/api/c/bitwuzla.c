@@ -4795,3 +4795,30 @@ int bitwuzla_is_term_unconstrained(Bitwuzla *bitwuzla, const BitwuzlaTerm *term)
     return !fail;
 }
 
+void bitwuzla_optimistic(Bitwuzla *bitwuzla, const BitwuzlaTerm *keep) {
+  // Drop the entire unsat core
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  BZLA_CHECK_OPT_PRODUCE_UNSAT_CORES(bzla);
+  BZLA_CHECK_UNSAT(bzla, "optimistic");
+
+  BzlaNode *keepn = BZLA_IMPORT_BITWUZLA_TERM(keep);
+
+  for (uint32_t i = 0; i < BZLA_COUNT_STACK(bzla->assertions); i++)
+  {
+    BzlaNode *cur = BZLA_PEEK_STACK(bzla->assertions, i);
+    if (cur == NULL) continue;
+
+    if (bzla_failed_exp(bzla, cur))
+    {
+        if (cur == keepn) {
+            fprintf(stderr, "keep\n");
+        } else {
+            BZLA_POKE_STACK(bzla->assertions, i, bzla_exp_true(bzla));
+            fprintf(stderr, "failed => true\n");
+        }
+    }
+  }
+}
+
