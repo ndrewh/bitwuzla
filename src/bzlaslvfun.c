@@ -271,7 +271,7 @@ timed_sat_sat(Bzla *bzla, int32_t limit)
 
   amgr = bzla_get_aig_mgr(bzla);
   BZLA_MSG(bzla->msg,
-           1,
+           0,
            "%u AIG vars, %u AIG ands, %u CNF vars, %u CNF clauses",
            amgr->cur_num_aig_vars,
            amgr->cur_num_aigs,

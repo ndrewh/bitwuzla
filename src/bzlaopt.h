@@ -153,6 +153,8 @@ enum BzlaOption
   BZLA_OPT_SAT_ENGINE_N_THREADS,
   BZLA_OPT_SMT_COMP_MODE,
 
+  BZLA_OPT_SAT_ENGINE_CADICAL_DEBUG,
+
   /* this MUST be the last entry! */
   BZLA_OPT_NUM_OPTS,
 };

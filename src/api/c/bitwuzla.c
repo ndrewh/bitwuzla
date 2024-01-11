@@ -170,6 +170,8 @@ static BzlaOption bzla_options[BITWUZLA_OPT_NUM_OPTS] = {
     [BITWUZLA_OPT_SAT_ENGINE]              = BZLA_OPT_SAT_ENGINE,
     [BITWUZLA_OPT_SAT_ENGINE_CADICAL_FREEZE] =
         BZLA_OPT_SAT_ENGINE_CADICAL_FREEZE,
+    [BITWUZLA_OPT_SAT_ENGINE_CADICAL_DEBUG] =
+        BZLA_OPT_SAT_ENGINE_CADICAL_DEBUG,
     [BITWUZLA_OPT_SAT_ENGINE_LGL_FORK]     = BZLA_OPT_SAT_ENGINE_LGL_FORK,
     [BITWUZLA_OPT_SAT_ENGINE_N_THREADS]    = BZLA_OPT_SAT_ENGINE_N_THREADS,
     [BITWUZLA_OPT_SEED]                    = BZLA_OPT_SEED,
@@ -284,6 +286,8 @@ static BitwuzlaOption bitwuzla_options[BZLA_OPT_NUM_OPTS] = {
     [BZLA_OPT_SAT_ENGINE]              = BITWUZLA_OPT_SAT_ENGINE,
     [BZLA_OPT_SAT_ENGINE_CADICAL_FREEZE] =
         BITWUZLA_OPT_SAT_ENGINE_CADICAL_FREEZE,
+    [BZLA_OPT_SAT_ENGINE_CADICAL_DEBUG] =
+        BITWUZLA_OPT_SAT_ENGINE_CADICAL_DEBUG,
     [BZLA_OPT_SAT_ENGINE_LGL_FORK]     = BITWUZLA_OPT_SAT_ENGINE_LGL_FORK,
     [BZLA_OPT_SAT_ENGINE_N_THREADS]    = BITWUZLA_OPT_SAT_ENGINE_N_THREADS,
     [BZLA_OPT_SEED]                    = BITWUZLA_OPT_SEED,
@@ -4746,6 +4750,47 @@ bitwuzla_get_num_outputs(Bitwuzla *bitwuzla) {
   BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
   Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
   return BZLA_COUNT_STACK(bzla->outputs);
+}
+
+const BitwuzlaTerm** bitwuzla_get_term_for_cnf(Bitwuzla *bitwuzla, int cnf_id, int *result_size) {
+    Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
+
+    BzlaNode *cur, *exp, *real_exp;
+    fprintf(stderr, "Searching %lu\n", BZLA_COUNT_STACK(bzla->nodes_id_table));
+    BZLA_RESET_STACK(bitwuzla->d_unsat_core);
+
+    for (long unsigned i = 0; i < BZLA_COUNT_STACK(bzla->nodes_id_table); i++)
+    {
+        cur = BZLA_PEEK_STACK(bzla->nodes_id_table, i);
+        if (cur)
+        {
+            exp      = bzla_node_get_simplified(bzla, cur);
+            real_exp = bzla_node_real_addr(exp);
+
+            if (!real_exp->av) continue;
+
+            uint32_t k, j, width;
+            BzlaAIGVec *av;
+
+            av    = real_exp->av;
+            width = av->width;
+
+            for (k = 0, j = width - 1; k < width; k++, j--)
+            {
+                BzlaAIG *aig = av->aigs[j];
+                if (aig == BZLA_AIG_TRUE || aig == BZLA_AIG_FALSE) continue;
+                if (BZLA_REAL_ADDR_AIG(aig)->cnf_id == cnf_id) {
+                    /* fprintf(stderr, "Found %d\n", cnf_id); */
+                    /* bzla_dumpbtor_dump_node(bzla, stderr, exp); */
+                    BZLA_PUSH_STACK(bitwuzla->d_unsat_core,
+                                    BZLA_EXPORT_BITWUZLA_TERM(bzla_node_copy(bzla, cur)));
+                    bzla_node_inc_ext_ref_counter(bzla, cur);
+                }
+            }
+        }
+    }
+    *result_size = BZLA_COUNT_STACK(bitwuzla->d_unsat_core);
+    return bitwuzla->d_unsat_core.start;
 }
 
 // This is UNSOUND! There are two problems:

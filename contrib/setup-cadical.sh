@@ -14,7 +14,7 @@ set -e -o pipefail
 source "$(dirname "$0")/setup-utils.sh"
 
 CADICAL_DIR="${DEPS_DIR}/cadical"
-COMMIT_ID="1.9.1-flippable"
+COMMIT_ID="1.9.4-flippable"
 
 TAR_ARGS=""
 if is_windows; then

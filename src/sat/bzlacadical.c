@@ -30,6 +30,14 @@ init(BzlaSATMgr *smgr)
     ccadical_set_option(slv, "checkfrozen", 1);
   }
   ccadical_set_option(slv, "shrink", 0);
+
+  if (bzla_opt_get(smgr->bzla, BZLA_OPT_SAT_ENGINE_CADICAL_DEBUG)) {
+    ccadical_set_option(slv, "binary", 0);
+    FILE *pf = fopen("tmp_proof", "w");
+    if (ccadical_trace_proof(slv, pf, "tmp_proof")) {
+      fprintf(stderr, "Proof tracing start.\n");
+    }
+  }
   return slv;
 }
 

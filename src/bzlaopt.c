@@ -1520,6 +1520,16 @@ bzla_opt_init_opts(Bzla *bzla)
            1,
            "use CaDiCaL's freeze/melt");
   init_opt(bzla,
+           BZLA_OPT_SAT_ENGINE_CADICAL_DEBUG,
+           true,
+           true,
+           "sat-engine-cadical-debug",
+           0,
+           0,
+           0,
+           1,
+           "use CaDiCaL's freeze/melt");
+  init_opt(bzla,
            BZLA_OPT_SAT_ENGINE_N_THREADS,
            true,
            true,
