@@ -1174,6 +1174,16 @@ bitwuzla_set_termination_callback(Bitwuzla *bitwuzla,
   bzla_set_term(BZLA_IMPORT_BITWUZLA(bitwuzla), fun, state);
 }
 
+void
+bitwuzla_set_sat_init(Bitwuzla *bitwuzla,
+                                  void (*fun)(void *),
+                                  void *state) {
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  BzlaSATMgr *smgr = bzla_get_sat_mgr(bzla);
+  bzla_sat_mgr_set_init(smgr, fun, state);
+}
+
 void *
 bitwuzla_get_termination_callback_state(Bitwuzla *bitwuzla)
 {
@@ -4793,25 +4803,87 @@ const BitwuzlaTerm** bitwuzla_get_term_for_cnf(Bitwuzla *bitwuzla, int cnf_id, i
     return bitwuzla->d_unsat_core.start;
 }
 
+
+void bitwuzla_force_synthesize(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
+    BZLA_ABORT(!bitwuzla_term_is_const(term), "bad term type to bitwuzla_force_synthesize");
+
+    Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
+    BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
+
+    BzlaNode *exp      = bzla_node_get_simplified(bzla, bzla_term);
+
+    /* int old_val = bzla_opt_get(bzla, BZLA_OPT_FUN_LAZY_SYNTHESIZE); */
+    /* bzla_opt_set(bzla, BZLA_OPT_FUN_LAZY_SYNTHESIZE, 0); */
+    if (!exp->av) bzla_synthesize_exp(bzla, exp, 0);
+    assert(exp->av);
+    /* bzla_opt_set(bzla, BZLA_OPT_FUN_LAZY_SYNTHESIZE, old_val); */
+}
+
+static int bzla_is_term_unconstrained(Bzla *bzla, BzlaNode *n);
+
+// Do BFS, stopping at synthesized nodes. If all leaves are unconstrained then its ok to flip
+// (See below for soundness issues)
+static int is_unsynthesized_term_unconstrained(Bzla *bzla, BzlaNode *n) {
+  uint32_t i;
+  BzlaNode *cur;
+  BzlaNodePtrStack visit;
+  BzlaIntHashTable *cache;
+
+  cache = bzla_hashint_table_new(bzla->mm);
+
+  BZLA_INIT_STACK(bzla->mm, visit);
+  BZLA_PUSH_STACK(visit, n);
+
+  int result = 1;
+  do
+  {
+    cur = bzla_node_real_addr(BZLA_POP_STACK(visit));
+    cur = bzla_node_get_simplified(bzla, cur);
+
+    if (bzla_hashint_table_contains(cache, cur->id))
+      continue;
+
+    bzla_hashint_table_add(cache, cur->id);
+
+    if (!cur->parameterized && !bzla_node_is_args(cur) && cur->av) {
+        // Synthesized: Do not recurse.
+        // We just need to check if this leaf is constrained or not.
+        // (If so, we are done)
+
+        if (!bzla_is_term_unconstrained(bzla, cur)) {
+            result = 0;
+            break;
+        }
+    } else {
+        for (i = 0; i < cur->arity; i++)
+        {
+          BZLA_PUSH_STACK(visit, cur->e[i]);
+        }
+    }
+  } while (!BZLA_EMPTY_STACK(visit));
+
+  BZLA_RELEASE_STACK(visit);
+  bzla_hashint_table_delete(cache);
+  return result;
+}
+
 // This is UNSOUND! There are two problems:
 // 1. the SAT formula does not contain all the array constraints (maybe try checker in bzlacheckmodel.c afterwards?)
 // 2. being able to flip all the bits individually does not imply that all of the bits are unconstrained (they may not be
 // flippable all at once, for example)
-int bitwuzla_is_term_unconstrained(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
-    assert(bitwuzla_term_is_const(term));
-
-    Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
-    assert(bzla_opt_get(bzla, BZLA_OPT_SAT_ENGINE) == BZLA_SAT_ENGINE_CADICAL);
-
+static int bzla_is_term_unconstrained(Bzla *bzla, BzlaNode *n) {
     BzlaSATMgr *smgr = bzla_get_sat_mgr(bzla);
     CCaDiCaL *solver = smgr->solver;
 
-    BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
     BzlaNode *real_exp, *exp;
-    exp      = bzla_node_get_simplified(bzla, bzla_term);
+    exp      = bzla_node_get_simplified(bzla, n);
     real_exp = bzla_node_real_addr(exp);
 
-    if (!real_exp->av) return true;
+    if (!real_exp->av) {
+        // This term was probably not synthesized.
+        // XXX: if it wasn't encoded to AIG then it is not necessarily unconstrained!!!
+        return is_unsynthesized_term_unconstrained(bzla, real_exp);
+    }
 
     uint32_t i, j, width;
     BzlaAIGVec *av;
@@ -4834,10 +4906,24 @@ int bitwuzla_is_term_unconstrained(Bitwuzla *bitwuzla, const BitwuzlaTerm *term)
                 fail = true;
                 break;
             }
-        } // note: else is OK -- if it wasn't encoded to AIG then it is unconstrained
+        } else {
+            fprintf(stderr, "WARN: bad cnf id: %d\n", BZLA_REAL_ADDR_AIG(aig)->cnf_id);
+            fail = true;
+            // XXX: if it wasn't encoded to AIG then it is not necessarily unconstrained!!!
+        }
     }
 
     return !fail;
+}
+
+int bitwuzla_is_term_unconstrained(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
+    assert(bitwuzla_term_is_const(term));
+
+    Bzla *bzla          = BZLA_IMPORT_BITWUZLA(bitwuzla);
+    assert(bzla_opt_get(bzla, BZLA_OPT_SAT_ENGINE) == BZLA_SAT_ENGINE_CADICAL);
+
+    BzlaNode *bzla_term = BZLA_IMPORT_BITWUZLA_TERM(term);
+    return bzla_is_term_unconstrained(bzla, bzla_term);
 }
 
 void bitwuzla_optimistic(Bitwuzla *bitwuzla, const BitwuzlaTerm *keep) {
@@ -4864,6 +4950,30 @@ void bitwuzla_optimistic(Bitwuzla *bitwuzla, const BitwuzlaTerm *keep) {
             fprintf(stderr, "failed => true\n");
         }
     }
+  }
+}
+
+void bitwuzla_mark_no_decisions(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+  BZLA_CHECK_ARG_NOT_NULL(term);
+
+  BzlaNode *n = BZLA_IMPORT_BITWUZLA_TERM(term);
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+
+  if (!bzla_node_is_proxy(n)) {
+      bzla_node_real_addr(n)->ban_decision = 1;
+  }
+  bzla_node_real_addr(bzla_node_get_simplified(bzla, n))->ban_decision = 1;
+}
+
+void bitwuzla_set_nodecide(Bitwuzla *bitwuzla, int nodecide) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  if (nodecide) {
+      bzla->new_exp_nodecide = 1;
+  } else {
+      bzla->new_exp_nodecide = 0;
   }
 }
 

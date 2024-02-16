@@ -255,6 +255,9 @@ configure_sat_mgr(Bzla *bzla)
   BZLA_ABORT(smgr->inc_required && !bzla_sat_mgr_has_incremental_support(smgr),
              "selected SAT solver '%s' does not support incremental mode",
              smgr->name);
+
+  if (smgr->init.fun)
+    smgr->init.fun(smgr->init.state);
 }
 
 static BzlaSolverResult
@@ -284,7 +287,7 @@ timed_sat_sat(Bzla *bzla, int32_t limit)
   BZLA_FUN_SOLVER(bzla)->time.sat += delta;
 
   BZLA_MSG(
-      bzla->msg, 2, "SAT solver returns %d after %.1f seconds", res, delta);
+      bzla->msg, 0, "SAT solver returns %d after %.1f seconds", res, delta);
 
   return res;
 }

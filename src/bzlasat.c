@@ -199,6 +199,14 @@ bzla_sat_mgr_set_term(BzlaSATMgr *smgr, int32_t (*fun)(void *), void *state)
   smgr->term.state = state;
 }
 
+void
+bzla_sat_mgr_set_init(BzlaSATMgr *smgr, void (*fun)(void *), void *state)
+{
+  assert(smgr);
+  smgr->init.fun   = fun;
+  smgr->init.state = state;
+}
+
 // FIXME log output handling, in particular: sat manager name output
 // (see lingeling_sat) should be unique, which is not the case for
 // clones

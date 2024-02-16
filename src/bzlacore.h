@@ -138,8 +138,12 @@ struct Bzla
   BzlaIntHashTable *assertions_cache;
   /* saves the number of assertions on each push */
   BzlaUIntStack assertions_trail;
+
   /* Number of push/pop calls (used for unique symbol prefixes) */
   uint32_t num_push_pop;
+
+  /* Number of push/pop calls (used for unique symbol prefixes) */
+  uint8_t new_exp_nodecide:1;
 
 #ifndef NDEBUG
   Bzla *clone; /* shadow clone (debugging only) */

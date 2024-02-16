@@ -882,6 +882,7 @@ bzla_aigvec_copy(BzlaAIGVecMgr *avmgr, BzlaAIGVec *av)
   amgr   = avmgr->amgr;
   width  = av->width;
   result = new_aigvec(avmgr, width);
+
   for (i = 0; i < width; i++)
     result->aigs[i] = bzla_aig_copy(amgr, av->aigs[i]);
   return result;

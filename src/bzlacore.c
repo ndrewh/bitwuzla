@@ -1628,6 +1628,10 @@ insert_new_constraint(Bzla *bzla, BzlaNode *exp)
         && bzla_opt_get(bzla, BZLA_OPT_PP_VAR_SUBST)
         && normalize_substitution(bzla, exp, &left, &right))
     {
+      if (real_exp->ban_decision) {
+        bzla_node_real_addr(left)->ban_decision = 1;
+        bzla_node_real_addr(right)->ban_decision = 1;
+      }
       insert_varsubst_constraint(bzla, left, right);
       bzla_node_release(bzla, left);
       bzla_node_release(bzla, right);
@@ -2145,6 +2149,8 @@ bzla_set_simplified_exp(Bzla *bzla, BzlaNode *exp, BzlaNode *simplified)
 
   if (exp->constraint) replace_constraint(bzla, exp, exp->simplified);
 
+  /* if (exp->ban_decision) exp->simplified->ban_decision = 1; */
+
   if (!bzla_opt_get(bzla, BZLA_OPT_PP_NONDESTR_SUBST))
   {
     bzla_node_set_to_proxy(bzla, exp);
@@ -2351,6 +2357,8 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
     cur = bzla_node_real_addr(BZLA_POP_STACK(exp_stack));
     assert(!bzla_node_is_proxy(cur));
     assert(!bzla_node_is_simplified(cur));
+
+    avmgr->amgr->mark_ban_decision = cur->ban_decision;
 
     if (bzla_node_is_synth(cur)) continue;
 
@@ -2635,6 +2643,7 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
         bzla->msg, 3, "synthesized %u expressions into AIG vectors", count);
 
   bzla->time.synth_exp += bzla_util_time_stamp() - start;
+  avmgr->amgr->mark_ban_decision = 0;
 }
 
 /* forward assumptions to the SAT solver */

@@ -137,6 +137,7 @@ bzla_eliminate_slices_on_bv_vars(Bzla *bzla)
   {
     var = BZLA_POP_STACK(vars);
     if (!bzla_node_is_bv_var(var)) continue;
+
     BZLALOG(2,
             "process %s (%s)",
             bzla_util_node2string(var),
@@ -320,4 +321,5 @@ bzla_eliminate_slices_on_bv_vars(Bzla *bzla)
   bzla->time.slicing += delta;
   BZLALOG(1, "end slice elimination");
   BZLA_MSG(bzla->msg, 1, "sliced %u variables in %1.f seconds", count, delta);
+  bzla->new_exp_nodecide = 0;
 }

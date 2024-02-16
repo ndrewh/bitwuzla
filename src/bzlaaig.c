@@ -96,6 +96,10 @@ new_and_aig(BzlaAIGMgr *amgr, BzlaAIG *left, BzlaAIG *right)
   amgr->cur_num_aigs++;
   if (amgr->max_num_aigs < amgr->cur_num_aigs)
     amgr->max_num_aigs = amgr->cur_num_aigs;
+
+  if (amgr->mark_ban_decision)
+    aig->ban_decision = 1;
+
   return aig;
 }
 
@@ -1027,6 +1031,8 @@ set_next_id_aig_mgr(BzlaAIGMgr *amgr, BzlaAIG *root)
   assert(!BZLA_IS_INVERTED_AIG(root));
   assert(!root->cnf_id);
   root->cnf_id = bzla_sat_mgr_next_cnf_id(amgr->smgr);
+  if (root->ban_decision)
+    ccadical_mark_nodecide(amgr->smgr->solver, root->cnf_id);
   assert(root->cnf_id > 0);
   BZLA_FIT_STACK(amgr->cnfid2aig, (size_t) root->cnf_id);
   amgr->cnfid2aig.start[root->cnf_id] = root->id;

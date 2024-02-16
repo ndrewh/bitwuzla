@@ -54,6 +54,12 @@ struct BzlaSATMgr
     void *state;
   } term;
 
+  struct
+  {
+    void (*fun)(void *); /* termination callback */
+    void *state;
+  } init;
+
   bool have_restore;
   struct
   {
@@ -102,6 +108,10 @@ bool bzla_sat_mgr_has_incremental_support(const BzlaSATMgr *smgr);
 
 void bzla_sat_mgr_set_term(BzlaSATMgr *smgr,
                            int32_t (*fun)(void *),
+                           void *state);
+
+void bzla_sat_mgr_set_init(BzlaSATMgr *smgr,
+                           void (*fun)(void *),
                            void *state);
 
 /* Clones existing SAT manager (and underlying SAT solver). */

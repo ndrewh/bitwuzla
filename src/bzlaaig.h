@@ -31,6 +31,7 @@ struct BzlaAIG
   int32_t next; /* next AIG id for unique table */
   uint8_t mark : 2;
   uint8_t is_var : 1; /* is it an AIG variable or an AND? */
+  uint8_t ban_decision : 1; /* true if we do not want the sat solver to use this var for decisions */
   uint32_t local;
   int32_t children[]; /* only allocated for AIG AND */
 };
@@ -55,6 +56,7 @@ struct BzlaAIGMgr
   BzlaSATMgr *smgr;
   BzlaAIGPtrStack id2aig; /* id to AIG node */
   BzlaIntStack cnfid2aig; /* cnf id to AIG id */
+  uint8_t mark_ban_decision:1;
 
   uint_least64_t cur_num_aigs;     /* current number of ANDs */
   uint_least64_t cur_num_aig_vars; /* current number of AIG variables */

@@ -38,6 +38,8 @@ init(BzlaSATMgr *smgr)
       fprintf(stderr, "Proof tracing start.\n");
     }
   }
+  /* ccadical_set_option(slv, "shuffle", 1); */
+  /* ccadical_set_option(slv, "shufflerandom", 1); */
   return slv;
 }
 

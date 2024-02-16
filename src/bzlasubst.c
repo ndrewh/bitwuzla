@@ -461,6 +461,7 @@ RESTART:
       {
         rebuilt = rebuild_exp(bzla, real_cur_subst);
       }
+      bzla_node_real_addr(rebuilt)->ban_decision = real_cur_subst->ban_decision;
       rebuilt = bzla_node_cond_invert(cur_subst, rebuilt);
 
       assert(rebuilt);

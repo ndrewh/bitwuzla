@@ -1759,6 +1759,7 @@ parse_bzla_parser(BzlaBZLAParser *parser,
   int32_t ch;
   uint32_t width;
   const BitwuzlaTerm *e;
+  uint32_t is_banned_from_decisions;
 
   assert(infile);
   assert(infile_name);
@@ -1825,6 +1826,10 @@ NEXT:
 
   if (parse_space(parser)) return parser->error;
 
+  if (parse_non_negative_int(parser, &is_banned_from_decisions)) return parser->error;
+
+  if (parse_space(parser)) return parser->error;
+
   assert(BZLA_EMPTY_STACK(parser->op));
   while (!isspace(ch = nextch_btor(parser)) && ch != EOF)
     BZLA_PUSH_STACK(parser->op, ch);
@@ -1840,11 +1845,16 @@ NEXT:
   if (!(op_parser = find_parser(parser, parser->op.start)))
     return perr_btor(parser, "invalid operator '%s'", parser->op.start);
 
+  if (is_banned_from_decisions) bitwuzla_set_nodecide(parser->bitwuzla, 1);
+
   if (!(e = op_parser(parser, width)))
   {
     assert(parser->error);
+    if (is_banned_from_decisions) bitwuzla_set_nodecide(parser->bitwuzla, 0);
     return parser->error;
   }
+
+  if (is_banned_from_decisions) bitwuzla_set_nodecide(parser->bitwuzla, 0);
 
   parser->exps.start[parser->idx] = e;
 
