@@ -1528,7 +1528,27 @@ bzla_opt_init_opts(Bzla *bzla)
            0,
            0,
            1,
-           "use CaDiCaL's freeze/melt");
+           "dump proof");
+  init_opt(bzla,
+           BZLA_OPT_SAT_ENGINE_CADICAL_SHUFFLE,
+           true,
+           true,
+           "sat-engine-cadical-shuffle",
+           0,
+           0,
+           0,
+           1,
+           "use CaDiCaL's shuffle");
+  init_opt(bzla,
+           BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING,
+           true,
+           true,
+           "sat-engine-decision-weighting",
+           0,
+           0,
+           0,
+           1,
+           "use CaDiCaL's shuffle");
   init_opt(bzla,
            BZLA_OPT_SAT_ENGINE_N_THREADS,
            true,

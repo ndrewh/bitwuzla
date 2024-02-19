@@ -1438,6 +1438,26 @@ enum BitwuzlaOption
    */
   BITWUZLA_OPT_SAT_ENGINE_CADICAL_DEBUG,
 
+  /*! ** Enable variable shuffling **
+   *
+   * Values:
+   *  * **1**: enable
+   *  * **0**: disable [**default**]
+   *
+   *  @warning This is an expert option.
+   */
+  BITWUZLA_OPT_SAT_ENGINE_CADICAL_SHUFFLE,
+
+  /*! ** Enable variable weighting **
+   *
+   * Values:
+   *  * **1**: enable
+   *  * **0**: disable [**default**]
+   *
+   *  @warning This is an expert option.
+   */
+  BITWUZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING,
+
   /*! **Lingeling fork mode.**
    *
    * Values:

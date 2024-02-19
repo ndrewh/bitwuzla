@@ -38,8 +38,15 @@ init(BzlaSATMgr *smgr)
       fprintf(stderr, "Proof tracing start.\n");
     }
   }
-  /* ccadical_set_option(slv, "shuffle", 1); */
-  /* ccadical_set_option(slv, "shufflerandom", 1); */
+
+  if (bzla_opt_get(smgr->bzla, BZLA_OPT_SAT_ENGINE_CADICAL_SHUFFLE)) {
+    ccadical_set_option(slv, "shuffle", 1);
+    ccadical_set_option(slv, "shuffleinit", 1);
+    ccadical_set_option(slv, "shufflerandom", 1);
+  }
+  if (bzla_opt_get(smgr->bzla, BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING)) {
+    /* ccadical_set_option(slv, "nodecidenobump", 1); */
+  }
   return slv;
 }
 
