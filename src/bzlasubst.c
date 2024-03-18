@@ -461,7 +461,18 @@ RESTART:
       {
         rebuilt = rebuild_exp(bzla, real_cur_subst);
       }
-      bzla_node_real_addr(rebuilt)->ban_decision = real_cur_subst->ban_decision;
+      if (!bzla_node_is_bv_var(rebuilt)) {
+        if (real_cur_subst->decision_group == 0 && bzla_node_real_addr(rebuilt)->decision_group != 0) {
+          fprintf(stderr, "bzlasubst\n");
+          fprintf(stderr,
+                  "rebuild: %p %s != %s",
+                  &real_cur_subst->decision_group,
+                  bzla_util_node2string(real_cur_subst),
+                  bzla_util_node2string(rebuilt));
+          /* *(volatile uint64_t*)(0) = 42; // crash */
+        }
+        bzla_node_real_addr(rebuilt)->decision_group = real_cur_subst->decision_group;
+      }
       rebuilt = bzla_node_cond_invert(cur_subst, rebuilt);
 
       assert(rebuilt);

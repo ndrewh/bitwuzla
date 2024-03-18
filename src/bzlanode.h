@@ -131,9 +131,9 @@ extern const char *const g_bzla_op2str[BZLA_NUM_OPS_NODE];
     uint8_t is_array : 1;         /* function represents array ? */        \
     uint8_t rebuild : 1;          /* indicates whether rebuild is required \
                                      during substitution */                \
-    uint8_t ban_decision : 1;    /* ban decisions in the SAT solver */      \
     uint8_t arity : 3;            /* arity of operator (at most 3) */      \
     uint8_t bytes;                /* allocated bytes */                    \
+    uint32_t decision_group;    /* ban decisions in the SAT solver */      \
     int32_t id;                   /* unique expression id */               \
     uint32_t refs;                /* reference counter (incl. ext_refs) */ \
     uint32_t ext_refs;            /* external references counter */        \

@@ -75,6 +75,7 @@ setup_aig_and_add_to_id_table(BzlaAIGMgr *amgr, BzlaAIG *aig)
   assert(aig->id >= 0);
   assert(BZLA_COUNT_STACK(amgr->id2aig) == (size_t) aig->id + 1);
   assert(BZLA_PEEK_STACK(amgr->id2aig, aig->id) == aig);
+  aig->decision_group = amgr->mark_decision_group;
 }
 
 static BzlaAIG *
@@ -96,9 +97,6 @@ new_and_aig(BzlaAIGMgr *amgr, BzlaAIG *left, BzlaAIG *right)
   amgr->cur_num_aigs++;
   if (amgr->max_num_aigs < amgr->cur_num_aigs)
     amgr->max_num_aigs = amgr->cur_num_aigs;
-
-  if (amgr->mark_ban_decision)
-    aig->ban_decision = 1;
 
   return aig;
 }
@@ -358,6 +356,9 @@ bzla_aig_var(BzlaAIGMgr *amgr)
   assert(amgr);
   BZLA_CNEW(amgr->bzla->mm, aig);
   setup_aig_and_add_to_id_table(amgr, aig);
+  if (aig->decision_group) {
+    fprintf(stderr, "WARN: bzla_aig_var fail\n");
+  }
   aig->is_var = 1;
   amgr->cur_num_aig_vars++;
   if (amgr->max_num_aig_vars < amgr->cur_num_aig_vars)
@@ -1034,8 +1035,14 @@ set_next_id_aig_mgr(BzlaAIGMgr *amgr, BzlaAIG *root)
   /* if (!root->ban_decision) */
   /*   ccadical_mark_nodecide(amgr->smgr->solver, root->cnf_id); */
   if (bzla_opt_get(amgr->smgr->bzla, BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING)) {
-    if ((rand() % 2) == 0)
-      ccadical_mark_nodecide(amgr->smgr->solver, root->cnf_id);
+    /* if ((rand() % 2) == 0) */
+    /* if (root->decision_group) */
+    /*   ccadical_mark_nodecide(amgr->smgr->solver, root->cnf_id); */
+    ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, root->decision_group);
+    if (root->decision_group == 0) {
+      fprintf(stderr, "var %d has group %d\n", root->cnf_id, root->decision_group);
+    }
+    /* ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, rand() % 5); */
   }
 
   assert(root->cnf_id > 0);

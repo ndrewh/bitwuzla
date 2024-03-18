@@ -145,9 +145,7 @@ set_kind(Bzla *bzla, BzlaNode *exp, BzlaNodeKind kind)
 
   assert(!BZLA_INVALID_NODE);
 
-  if (bzla->new_exp_nodecide) {
-    exp->ban_decision = 1;
-  }
+  exp->decision_group = bzla->new_exp_decision_group;
 
   if (exp->kind)
   {

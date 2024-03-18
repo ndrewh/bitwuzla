@@ -44,9 +44,15 @@ init(BzlaSATMgr *smgr)
     ccadical_set_option(slv, "shuffleinit", 1);
     ccadical_set_option(slv, "shufflerandom", 1);
   }
+
+  ccadical_set_option(slv, "seed", bzla_rng_rand(smgr->bzla->rng));
   if (bzla_opt_get(smgr->bzla, BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING)) {
-    /* ccadical_set_option(slv, "nodecidenobump", 1); */
+    ccadical_set_option(slv, "nodecidenobump", 1);
+    ccadical_set_option(slv, "decisiongroupshuffle", 1);
+    /* ccadical_set_option(slv, "decompose", 0); */
+    /* ccadical_set_option(slv, "shuffle", 1); */
   }
+
   return slv;
 }
 

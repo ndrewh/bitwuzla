@@ -757,6 +757,7 @@ bzla_new(void)
 
   BZLA_INIT_STACK(mm, bzla->assertions);
   BZLA_INIT_STACK(mm, bzla->assertions_trail);
+  BZLA_INIT_STACK(mm, bzla->decision_group_weights);
   bzla->assertions_cache = bzla_hashint_table_new(mm);
 
 #ifndef NDEBUG
@@ -954,6 +955,7 @@ bzla_delete(Bzla *bzla)
     bzla_node_release(bzla, BZLA_PEEK_STACK(bzla->assertions, i));
   BZLA_RELEASE_STACK(bzla->assertions);
   BZLA_RELEASE_STACK(bzla->assertions_trail);
+  BZLA_RELEASE_STACK(bzla->decision_group_weights);
   bzla_hashint_table_delete(bzla->assertions_cache);
 
   bzla_model_delete(bzla);
@@ -1628,10 +1630,8 @@ insert_new_constraint(Bzla *bzla, BzlaNode *exp)
         && bzla_opt_get(bzla, BZLA_OPT_PP_VAR_SUBST)
         && normalize_substitution(bzla, exp, &left, &right))
     {
-      if (real_exp->ban_decision) {
-        bzla_node_real_addr(left)->ban_decision = 1;
-        bzla_node_real_addr(right)->ban_decision = 1;
-      }
+      bzla_node_real_addr(left)->decision_group = real_exp->decision_group;
+      bzla_node_real_addr(right)->decision_group = real_exp->decision_group;
       insert_varsubst_constraint(bzla, left, right);
       bzla_node_release(bzla, left);
       bzla_node_release(bzla, right);
@@ -2358,8 +2358,7 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
     assert(!bzla_node_is_proxy(cur));
     assert(!bzla_node_is_simplified(cur));
 
-    avmgr->amgr->mark_ban_decision = cur->ban_decision;
-
+    avmgr->amgr->mark_decision_group = cur->decision_group;
     if (bzla_node_is_synth(cur)) continue;
 
     count++;
@@ -2643,7 +2642,7 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
         bzla->msg, 3, "synthesized %u expressions into AIG vectors", count);
 
   bzla->time.synth_exp += bzla_util_time_stamp() - start;
-  avmgr->amgr->mark_ban_decision = 0;
+  avmgr->amgr->mark_decision_group = 0;
 }
 
 /* forward assumptions to the SAT solver */

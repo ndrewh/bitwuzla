@@ -418,7 +418,7 @@ bdcnode(BzlaDumpContext *bdc, BzlaNode *node, FILE *file)
   /* print id, operator and sort */
   if (bdc->version == 1)
   {
-    fprintf(file, "%d %d %s", bdcid(bdc, node), node->ban_decision, op);
+    fprintf(file, "%d %d %s", bdcid(bdc, node), node->decision_group, op);
 
     /* print index bit width of arrays */
     if (bzla_node_is_uf_array(node) || bzla_node_is_fun_cond(node)
@@ -778,8 +778,9 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
       len = bzla_node_bv_get_width(bdc->bzla, node);
     }
     fprintf(file,
-            "%d 0 output %u %d\n",
+            "%d %d output %u %d\n",
             id,
+            bzla_node_real_addr(node)->decision_group,
             len,
             bdcid(bdc, node));
   }

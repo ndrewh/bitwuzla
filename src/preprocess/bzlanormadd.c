@@ -481,7 +481,7 @@ bzla_normalize_adds(Bzla *bzla)
   {
     cur = bzla_node_real_addr(BZLA_POP_STACK(visit));
     id  = bzla_node_get_id(cur);
-    bzla->new_exp_nodecide = bzla_node_real_addr(cur)->ban_decision;
+    bzla->new_exp_decision_group = bzla_node_real_addr(cur)->decision_group;
 
     if (bzla_hashint_table_contains(cache, id)) continue;
     bzla_hashint_table_add(cache, id);
@@ -505,5 +505,5 @@ bzla_normalize_adds(Bzla *bzla)
 
   double delta = bzla_util_time_stamp() - start;
   BZLA_MSG(bzla->msg, 1, "normalized adds in %.3f seconds", delta);
-  bzla->new_exp_nodecide = 0;
+  bzla->new_exp_decision_group = 0;
 }

@@ -19,6 +19,7 @@
 #include "bzlabv.h"
 #include "bzlamsg.h"
 #include "bzlaparse.h"
+#include "bzlanode.h"
 #include "utils/bzlamem.h"
 #include "utils/bzlastack.h"
 #include "utils/bzlautil.h"
@@ -1759,7 +1760,7 @@ parse_bzla_parser(BzlaBZLAParser *parser,
   int32_t ch;
   uint32_t width;
   const BitwuzlaTerm *e;
-  uint32_t is_banned_from_decisions;
+  uint32_t decision_group;
 
   assert(infile);
   assert(infile_name);
@@ -1826,7 +1827,7 @@ NEXT:
 
   if (parse_space(parser)) return parser->error;
 
-  if (parse_non_negative_int(parser, &is_banned_from_decisions)) return parser->error;
+  if (parse_non_negative_int(parser, &decision_group)) return parser->error;
 
   if (parse_space(parser)) return parser->error;
 
@@ -1845,16 +1846,18 @@ NEXT:
   if (!(op_parser = find_parser(parser, parser->op.start)))
     return perr_btor(parser, "invalid operator '%s'", parser->op.start);
 
-  if (is_banned_from_decisions) bitwuzla_set_nodecide(parser->bitwuzla, 1);
+  bitwuzla_set_decision_group(parser->bitwuzla, decision_group);
 
   if (!(e = op_parser(parser, width)))
   {
     assert(parser->error);
-    if (is_banned_from_decisions) bitwuzla_set_nodecide(parser->bitwuzla, 0);
+    bitwuzla_set_decision_group(parser->bitwuzla, 0);
     return parser->error;
   }
 
-  if (is_banned_from_decisions) bitwuzla_set_nodecide(parser->bitwuzla, 0);
+  /* fprintf(stderr, "input %d id %d gp %d\n", parser->idx, bzla_node_get_id(e), decision_group); */
+
+  bitwuzla_set_decision_group(parser->bitwuzla, 0);
 
   parser->exps.start[parser->idx] = e;
 

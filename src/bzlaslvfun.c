@@ -2778,6 +2778,13 @@ sat_fun_solver(BzlaFunSolver *slv)
       assert(bzla_dbg_check_all_hash_tables_proxy_free(bzla));
       assert(bzla_dbg_check_all_hash_tables_simp_free(bzla));
 
+      // Process any weight updates
+      while (BZLA_COUNT_STACK(bzla->decision_group_weights) > 0) {
+        unsigned int weight = BZLA_POP_STACK(bzla->decision_group_weights);
+        unsigned int group = BZLA_POP_STACK(bzla->decision_group_weights);
+        ccadical_set_decision_group_weight(bzla_get_sat_mgr(bzla)->solver, group, weight);
+      }
+
       /* make SAT call on bv skeleton */
       result = timed_sat_sat(bzla, slv->sat_limit);
 

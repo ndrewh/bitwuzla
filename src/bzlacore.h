@@ -117,6 +117,8 @@ struct Bzla
   bool inconsistent;
   bool found_constraint_false;
 
+  BzlaUIntStack decision_group_weights;
+
   uint32_t external_refs;        /* external references (library mode) */
   uint32_t bzla_sat_bzla_called; /* how often is bzla_check_sat been called */
   BzlaSolverResult last_sat_result; /* status of last SAT call (SAT/UNSAT) */
@@ -143,7 +145,7 @@ struct Bzla
   uint32_t num_push_pop;
 
   /* Number of push/pop calls (used for unique symbol prefixes) */
-  uint8_t new_exp_nodecide:1;
+  uint32_t new_exp_decision_group;
 
 #ifndef NDEBUG
   Bzla *clone; /* shadow clone (debugging only) */

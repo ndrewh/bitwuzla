@@ -4961,27 +4961,17 @@ void bitwuzla_optimistic(Bitwuzla *bitwuzla, const BitwuzlaTerm *keep) {
   }
 }
 
-void bitwuzla_mark_no_decisions(Bitwuzla *bitwuzla, const BitwuzlaTerm *term) {
-  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
-  BZLA_CHECK_ARG_NOT_NULL(term);
-
-  BzlaNode *n = BZLA_IMPORT_BITWUZLA_TERM(term);
-  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
-
-  if (!bzla_node_is_proxy(n)) {
-      bzla_node_real_addr(n)->ban_decision = 1;
-  }
-  bzla_node_real_addr(bzla_node_get_simplified(bzla, n))->ban_decision = 1;
-}
-
-void bitwuzla_set_nodecide(Bitwuzla *bitwuzla, int nodecide) {
+void bitwuzla_set_decision_group(Bitwuzla *bitwuzla, uint32_t decision_group) {
   BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
 
   Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
-  if (nodecide) {
-      bzla->new_exp_nodecide = 1;
-  } else {
-      bzla->new_exp_nodecide = 0;
-  }
+  bzla->new_exp_decision_group = decision_group;
 }
 
+void bitwuzla_set_decision_group_weight(Bitwuzla *bitwuzla, uint32_t decision_group, uint32_t weight) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  BZLA_PUSH_STACK(bzla->decision_group_weights, decision_group);
+  BZLA_PUSH_STACK(bzla->decision_group_weights, weight);
+}
