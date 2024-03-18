@@ -34,6 +34,7 @@ struct BzlaSMTDumpContext
   BzlaPtrHashTable *idtab;
   BzlaPtrHashTable *roots;
   BzlaPtrHashTable *const_cache;
+  BzlaNodePtrStack outputs;
   FILE *file;
   uint32_t maxid;
   uint32_t pretty_print;
@@ -74,6 +75,7 @@ new_smt_dump_context(Bzla *bzla, FILE *file)
   sdc->maxid        = 1;
   sdc->pretty_print = bzla_opt_get(bzla, BZLA_OPT_PRETTY_PRINT);
   sdc->newline      = sdc->pretty_print == 1;
+  BZLA_INIT_STACK(bzla->mm, sdc->outputs);
   return sdc;
 }
 
@@ -101,6 +103,11 @@ delete_smt_dump_context(BzlaSMTDumpContext *sdc)
     bzla_bv_free(sdc->bzla->mm, (BzlaBitVector *) bzla_iter_hashptr_next(&it));
   }
   bzla_hashptr_table_delete(sdc->const_cache);
+
+  while (!BZLA_EMPTY_STACK(sdc->outputs))
+    bzla_node_release(sdc->bzla, BZLA_POP_STACK(sdc->outputs));
+  BZLA_RELEASE_STACK(sdc->outputs);
+
   BZLA_DELETE(sdc->bzla->mm, sdc);
 }
 
@@ -220,6 +227,13 @@ is_boolean(BzlaSMTDumpContext *sdc, BzlaNode *exp)
 {
   exp = bzla_node_real_addr(exp);
   return bzla_hashptr_table_get(sdc->boolean, exp) != 0;
+}
+
+void
+bzla_dumpsmt_add_output_to_dump_context(BzlaSMTDumpContext *bdc, BzlaNode *output)
+{
+  (void) bzla_node_copy(bdc->bzla, output);
+  BZLA_PUSH_STACK(bdc->outputs, output);
 }
 
 void
@@ -1980,12 +1994,27 @@ dump_smt(BzlaSMTDumpContext *sdc)
   BZLA_RELEASE_STACK(larr);
 
   fputs("(check-sat)\n", sdc->file);
+  for (i = 0; i < BZLA_COUNT_STACK(sdc->outputs); i++)
+  {
+    BzlaNode *exp = BZLA_PEEK_STACK(sdc->outputs, i);
+    while (bzla_node_is_proxy(exp)) {
+      exp = bzla_node_get_simplified(sdc->bzla, exp);
+    }
+
+    open_sexp(sdc);
+    fputs("get-value ", sdc->file);
+    if (!is_boolean(sdc, exp)) fputs("(= ", sdc->file);
+    recursively_dump_exp_smt(sdc, exp, 0, 0);
+    if (!is_boolean(sdc, exp)) fputs(" #b1)", sdc->file);
+    close_sexp(sdc);
+    fputc('\n', sdc->file);
+  }
   fputs("(exit)\n", sdc->file);
   fflush(sdc->file);
 }
 
 static void
-dump_smt_aux(Bzla *bzla, FILE *file, BzlaNode **roots, uint32_t nroots)
+dump_smt_aux(Bzla *bzla, FILE *file, BzlaNode **roots, uint32_t nroots, BzlaNode **outputs, uint32_t noutputs)
 {
   assert(bzla);
   assert(file);
@@ -2025,6 +2054,12 @@ dump_smt_aux(Bzla *bzla, FILE *file, BzlaNode **roots, uint32_t nroots)
     }
   }
 
+  if (noutputs) {
+    for (uint32_t i=0; i<noutputs; i++) {
+      bzla_dumpsmt_add_output_to_dump_context(sdc, outputs[i]);
+    }
+  }
+
   dump_smt(sdc);
   delete_smt_dump_context(sdc);
 }
@@ -2034,7 +2069,15 @@ bzla_dumpsmt_dump(Bzla *bzla, FILE *file)
 {
   assert(bzla);
   assert(file);
-  dump_smt_aux(bzla, file, 0, 0);
+  dump_smt_aux(bzla, file, 0, 0, 0, 0);
+}
+
+void
+bzla_dumpsmt_dump_with_extra(Bzla *bzla, FILE *file, BzlaNode **outputs, uint32_t noutput)
+{
+  assert(bzla);
+  assert(file);
+  dump_smt_aux(bzla, file, 0, 0, outputs, noutput);
 }
 
 void

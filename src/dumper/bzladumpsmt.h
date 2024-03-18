@@ -22,6 +22,7 @@ void bzla_dumpsmt_dump_node(Bzla* bzla,
                             uint32_t depth);
 
 void bzla_dumpsmt_dump(Bzla* bzla, FILE* file);
+void bzla_dumpsmt_dump_with_extra(Bzla *bzla, FILE *file, BzlaNode **outputs, uint32_t noutput);
 
 void bzla_dumpsmt_dump_const_bv_value(Bzla* bzla,
                                       const BzlaBitVector* bits,
