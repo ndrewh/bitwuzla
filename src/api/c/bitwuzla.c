@@ -3362,8 +3362,8 @@ bitwuzla_dump_formula(Bitwuzla *bitwuzla, const char *format, FILE *file)
   BZLA_CHECK_ARG_NOT_NULL(file);
 
   Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
-  BZLA_ABORT(bzla_opt_get(bzla, BZLA_OPT_INCREMENTAL),
-             "dumping in incremental mode is currently not supported");
+  /* BZLA_ABORT(bzla_opt_get(bzla, BZLA_OPT_INCREMENTAL), */
+  /*            "dumping in incremental mode is currently not supported"); */
   if (strcmp(format, "smt2") == 0)
   {
     bzla_dumpsmt_dump(bzla, file);
@@ -3388,6 +3388,19 @@ bitwuzla_dump_formula(Bitwuzla *bitwuzla, const char *format, FILE *file)
                format);
   }
 }
+
+void bitwuzla_dump_formula_smt_extended(Bitwuzla *bitwuzla, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file) {
+    Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+    BZLA_ABORT(!bzla_dumpbtor_can_be_dumped(bzla), "Cannot dump UF terms");
+
+    BzlaNode **output_list = malloc(sizeof(BzlaNode*) * num_output_terms);
+    for (int i=0; i<num_output_terms; i++) {
+        output_list[i] = BZLA_IMPORT_BITWUZLA_TERM(output_terms[i]);
+    }
+    bzla_dumpsmt_dump_with_extra(bzla, file, output_list, num_output_terms);
+    free(output_list);
+}
+
 
 void bitwuzla_dump_formula_and_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file) {
     Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);

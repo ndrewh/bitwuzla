@@ -3977,6 +3977,7 @@ const char* bitwuzla_get_const_bv_value(Bitwuzla *bitwuzla, const BitwuzlaTerm *
 void bitwuzla_dump_formula_and_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file);
 void bitwuzla_optimistic(Bitwuzla *bitwuzla, const BitwuzlaTerm *keep);
 const BitwuzlaTerm** bitwuzla_get_term_for_cnf(Bitwuzla *bitwuzla, int cnf_id, int *result_size);
+void bitwuzla_dump_formula_smt_extended(Bitwuzla *bitwuzla, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file);
 
 /* -------------------------------------------------------------------------- */
 
