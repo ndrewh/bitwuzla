@@ -2002,10 +2002,14 @@ dump_smt(BzlaSMTDumpContext *sdc)
     }
 
     open_sexp(sdc);
-    fputs("get-value ", sdc->file);
-    if (!is_boolean(sdc, exp)) fputs("(= ", sdc->file);
-    recursively_dump_exp_smt(sdc, exp, 0, 0);
-    if (!is_boolean(sdc, exp)) fputs(" #b1)", sdc->file);
+    fputs("get-value (", sdc->file);
+    if (!bzla_node_is_var(exp) || (bzla_hashptr_table_get(sdc->dumped, exp))) {
+      recursively_dump_exp_smt(sdc, exp, 0, 0);
+    } else {
+      recursively_dump_exp_smt(sdc, bzla_exp_false(sdc->bzla), 0, 0);
+    }
+    fputs(")", sdc->file);
+
     close_sexp(sdc);
     fputc('\n', sdc->file);
   }
