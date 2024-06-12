@@ -1038,11 +1038,15 @@ set_next_id_aig_mgr(BzlaAIGMgr *amgr, BzlaAIG *root)
     /* if ((rand() % 2) == 0) */
     /* if (root->decision_group) */
     /*   ccadical_mark_nodecide(amgr->smgr->solver, root->cnf_id); */
-    ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, root->decision_group);
+    /* ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, root->decision_group); */
     if (root->decision_group == 0) {
       fprintf(stderr, "var %d has group %d\n", root->cnf_id, root->decision_group);
     }
     /* ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, rand() % 5); */
+  }
+
+  if (bzla_opt_get(amgr->smgr->bzla, BZLA_OPT_SAT_ENGINE_POLARITY_INITIALIZATION) && root->has_hint) {
+    ccadical_set_polarity_hint(amgr->smgr->solver, root->cnf_id, root->hint);
   }
 
   assert(root->cnf_id > 0);

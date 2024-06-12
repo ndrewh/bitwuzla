@@ -418,7 +418,8 @@ bdcnode(BzlaDumpContext *bdc, BzlaNode *node, FILE *file)
   /* print id, operator and sort */
   if (bdc->version == 1)
   {
-    fprintf(file, "%d %d %s", bdcid(bdc, node), node->decision_group, op);
+    /* fprintf(file, "%d %d %s", bdcid(bdc, node), node->decision_group, op); */
+    fprintf(file, "%d %s", bdcid(bdc, node), op);
 
     /* print index bit width of arrays */
     if (bzla_node_is_uf_array(node) || bzla_node_is_fun_cond(node)
@@ -688,6 +689,16 @@ bdcrec(BzlaDumpContext *bdc, BzlaNode *start, FILE *file)
       {
         (void) bdcid(bdc, node);
         bdcnode(bdc, node, file);
+
+        // hint printing
+        if (node->hint) {
+          char *cbits = bzla_bv_to_char(bdc->bzla->mm, node->hint);
+          fprintf(file, "%d constd %d", ++bdc->maxid, bzla_bv_get_width(node->hint));
+          fprintf(file, " %s\n", cbits);
+          bzla_mem_freestr(bdc->bzla->mm, cbits);
+          uint32_t hint_id = bdc->maxid;
+          fprintf(file, "%d hint %d %d %d\n", ++bdc->maxid, bzla_bv_get_width(node->hint), bdcid(bdc, node), hint_id);
+        }
       }
     }
   }
@@ -778,9 +789,10 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
       len = bzla_node_bv_get_width(bdc->bzla, node);
     }
     fprintf(file,
-            "%d %d output %u %d\n",
+            /* "%d %d output %u %d\n", */
+            "%d output %u %d\n",
             id,
-            bzla_node_real_addr(node)->decision_group,
+            /* bzla_node_real_addr(node)->decision_group, */
             len,
             bdcid(bdc, node));
   }

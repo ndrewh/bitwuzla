@@ -1550,6 +1550,16 @@ bzla_opt_init_opts(Bzla *bzla)
            1,
            "use CaDiCaL's shuffle");
   init_opt(bzla,
+           BZLA_OPT_SAT_ENGINE_POLARITY_INITIALIZATION,
+           true,
+           true,
+           "sat-engine-polarity-initialization",
+           0,
+           0,
+           0,
+           1,
+           "Use polarity initialization annotations");
+  init_opt(bzla,
            BZLA_OPT_SAT_ENGINE_N_THREADS,
            true,
            true,

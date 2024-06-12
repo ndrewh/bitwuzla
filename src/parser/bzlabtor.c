@@ -1581,6 +1581,33 @@ parse_uext(BzlaBZLAParser *parser, uint32_t width)
   return parse_ext(parser, BITWUZLA_KIND_BV_ZERO_EXTEND, width);
 }
 
+static const BitwuzlaTerm *
+parse_hint(BzlaBZLAParser *parser, uint32_t width)
+{
+  assert(width);
+
+  const BitwuzlaTerm *l, *r;
+
+  if (parse_space(parser)) return 0;
+
+  if (!(l = parse_exp(parser, width, false, true, 0))) return 0;
+
+  if (parse_space(parser))
+  {
+  RELEASE_L_AND_RETURN_ERROR:
+    return 0;
+  }
+
+  if (!(r = parse_exp(parser, width, false, true, 0)))
+    goto RELEASE_L_AND_RETURN_ERROR;
+
+  assert(bitwuzla_term_is_bv_value(r));
+  assert(bitwuzla_term_bv_get_size(r) == width);
+
+  bitwuzla_set_hint_exp(parser->bitwuzla, l, r, true); // true -> frees r
+  return l;
+}
+
 static void
 new_parser(BzlaBZLAParser *parser, BzlaOpParser op_parser, const char *op)
 {
@@ -1719,6 +1746,7 @@ new_bzla_parser(Bitwuzla *bitwuzla)
   new_parser(res, parse_param, "param");
   new_parser(res, parse_lambda, "lambda");
   new_parser(res, parse_apply, "apply");
+  new_parser(res, parse_hint, "hint");
 
   return res;
 }
@@ -1827,9 +1855,9 @@ NEXT:
 
   if (parse_space(parser)) return parser->error;
 
-  if (parse_non_negative_int(parser, &decision_group)) return parser->error;
+  /* if (parse_non_negative_int(parser, &decision_group)) return parser->error; */
 
-  if (parse_space(parser)) return parser->error;
+  /* if (parse_space(parser)) return parser->error; */
 
   assert(BZLA_EMPTY_STACK(parser->op));
   while (!isspace(ch = nextch_btor(parser)) && ch != EOF)
@@ -1846,18 +1874,18 @@ NEXT:
   if (!(op_parser = find_parser(parser, parser->op.start)))
     return perr_btor(parser, "invalid operator '%s'", parser->op.start);
 
-  bitwuzla_set_decision_group(parser->bitwuzla, decision_group);
+  /* bitwuzla_set_decision_group(parser->bitwuzla, decision_group); */
 
   if (!(e = op_parser(parser, width)))
   {
     assert(parser->error);
-    bitwuzla_set_decision_group(parser->bitwuzla, 0);
+    /* bitwuzla_set_decision_group(parser->bitwuzla, 0); */
     return parser->error;
   }
 
   /* fprintf(stderr, "input %d id %d gp %d\n", parser->idx, bzla_node_get_id(e), decision_group); */
 
-  bitwuzla_set_decision_group(parser->bitwuzla, 0);
+  /* bitwuzla_set_decision_group(parser->bitwuzla, 0); */
 
   parser->exps.start[parser->idx] = e;
 

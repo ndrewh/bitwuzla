@@ -133,7 +133,8 @@ extern const char *const g_bzla_op2str[BZLA_NUM_OPS_NODE];
                                      during substitution */                \
     uint8_t arity : 3;            /* arity of operator (at most 3) */      \
     uint8_t bytes;                /* allocated bytes */                    \
-    uint32_t decision_group;    /* ban decisions in the SAT solver */      \
+    uint32_t decision_group;    /* change decision order in SAT solver*/   \
+    BzlaBitVector *hint;    /* change decision in SAT solver*/   \
     int32_t id;                   /* unique expression id */               \
     uint32_t refs;                /* reference counter (incl. ext_refs) */ \
     uint32_t ext_refs;            /* external references counter */        \

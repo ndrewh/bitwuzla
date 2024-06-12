@@ -524,6 +524,10 @@ clone_exp(Bzla *clone,
   res = bzla_mem_malloc(mm, exp->bytes);
   memcpy(res, exp, exp->bytes);
 
+  if (exp->hint) {
+    res->hint = bzla_bv_copy(mm, exp->hint);
+  }
+
   /* ------------------- BZLA_VAR_NODE_STRUCT (all nodes) -----------------> */
   if (bzla_node_is_bv_const(exp))
   {

@@ -1458,6 +1458,16 @@ enum BitwuzlaOption
    */
   BITWUZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING,
 
+  /*! ** Enable polarity initialization **
+   *
+   * Values:
+   *  * **1**: enable
+   *  * **0**: disable [**default**]
+   *
+   *  @warning This is an expert option.
+   */
+  BITWUZLA_OPT_SAT_ENGINE_POLARITY_INITIALIZATION,
+
   /*! **Lingeling fork mode.**
    *
    * Values:
@@ -4001,6 +4011,8 @@ void bitwuzla_set_decision_group(Bitwuzla *bitwuzla, uint32_t group);
 void bitwuzla_force_synthesize(Bitwuzla *bitwuzla, const BitwuzlaTerm *term);
 void bitwuzla_set_sat_init(Bitwuzla *bitwuzla, void (*fun)(void *), void *state);
 void bitwuzla_set_decision_group_weight(Bitwuzla *bitwuzla, uint32_t decision_group, uint32_t weight);
+void bitwuzla_set_hint(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint64_t hint);
+void bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm *hint, int free_hint);
 
 /* -------------------------------------------------------------------------- */
 

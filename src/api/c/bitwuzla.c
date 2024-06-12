@@ -176,6 +176,8 @@ static BzlaOption bzla_options[BITWUZLA_OPT_NUM_OPTS] = {
         BZLA_OPT_SAT_ENGINE_CADICAL_SHUFFLE,
     [BITWUZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING] =
         BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING,
+    [BITWUZLA_OPT_SAT_ENGINE_POLARITY_INITIALIZATION] =
+        BZLA_OPT_SAT_ENGINE_POLARITY_INITIALIZATION,
     [BITWUZLA_OPT_SAT_ENGINE_LGL_FORK]     = BZLA_OPT_SAT_ENGINE_LGL_FORK,
     [BITWUZLA_OPT_SAT_ENGINE_N_THREADS]    = BZLA_OPT_SAT_ENGINE_N_THREADS,
     [BITWUZLA_OPT_SEED]                    = BZLA_OPT_SEED,
@@ -296,6 +298,8 @@ static BitwuzlaOption bitwuzla_options[BZLA_OPT_NUM_OPTS] = {
         BITWUZLA_OPT_SAT_ENGINE_CADICAL_SHUFFLE,
     [BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING] =
         BITWUZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING,
+    [BZLA_OPT_SAT_ENGINE_POLARITY_INITIALIZATION] =
+        BITWUZLA_OPT_SAT_ENGINE_POLARITY_INITIALIZATION,
     [BZLA_OPT_SAT_ENGINE_LGL_FORK]     = BITWUZLA_OPT_SAT_ENGINE_LGL_FORK,
     [BZLA_OPT_SAT_ENGINE_N_THREADS]    = BITWUZLA_OPT_SAT_ENGINE_N_THREADS,
     [BZLA_OPT_SEED]                    = BITWUZLA_OPT_SEED,
@@ -4974,4 +4978,37 @@ void bitwuzla_set_decision_group_weight(Bitwuzla *bitwuzla, uint32_t decision_gr
   Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
   BZLA_PUSH_STACK(bzla->decision_group_weights, decision_group);
   BZLA_PUSH_STACK(bzla->decision_group_weights, weight);
+}
+
+void bitwuzla_set_hint(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint64_t hint) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+  BZLA_CHECK_ARG_NOT_NULL(term);
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  BzlaNode *exp = BZLA_IMPORT_BITWUZLA_TERM(term);
+  uint32_t width = bzla_node_bv_get_width(bzla, exp);
+
+  BzlaBitVector *bv = bzla_bv_uint64_to_bv(bzla->mm, hint, width);
+  exp->hint = bv;
+}
+
+void bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm *hint, int free_hint) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+  BZLA_CHECK_ARG_NOT_NULL(term);
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  BzlaNode *exp = BZLA_IMPORT_BITWUZLA_TERM(term);
+  BzlaNode *hintexp = BZLA_IMPORT_BITWUZLA_TERM(hint);
+
+  assert(bzla_node_bv_get_width(bzla, hintexp) == bzla_node_bv_get_width(bzla, exp));
+  assert(bzla_node_is_bv_const(hintexp));
+  BzlaBitVector *bv = bzla_bv_copy(bzla->mm, bzla_node_bv_const_get_bits(hintexp));
+
+  assert(bzla_node_is_bv(exp));
+  if (!bzla_node_is_bv_const(exp))
+      exp->hint = bv;
+
+  if (free_hint) {
+      bzla_node_release(bzla, hintexp);
+  }
 }

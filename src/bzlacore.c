@@ -2311,6 +2311,27 @@ bzla_simplify_exp(Bzla *bzla, BzlaNode *exp)
   return result;
 }
 
+static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
+  assert(exp->av);
+
+  if (exp->hint) {
+    BzlaBitVector *hint = exp->hint;
+    assert(bzla_node_is_bv(exp));
+    uint32_t width = bzla_node_bv_get_width(bzla, exp);
+    for (uint32_t i=0; i<width; i++) {
+      BzlaAIG *aig = exp->av->aigs[i];
+      if (aig == BZLA_AIG_TRUE || aig == BZLA_AIG_FALSE) continue;
+
+      if (BZLA_IS_INVERTED_AIG(aig)) {
+        aig->hint = bzla_bv_get_bit(hint, i) ? 0 : 1;
+      } else {
+        aig->hint = bzla_bv_get_bit(hint, i) ? 1 : 0;
+      }
+      aig->has_hint = 1;
+    }
+  }
+}
+
 /*------------------------------------------------------------------------*/
 
 /* bit vector skeleton is always encoded, i.e., if bzla_node_is_synth is true,
@@ -2630,6 +2651,8 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
         }
       }
       assert(cur->av);
+
+      propagate_hints_to_aig(bzla, cur);
       BZLALOG(2, "  synthesized: %s", bzla_util_node2string(cur));
       bzla_aigvec_to_sat_tseitin(avmgr, cur->av);
     }

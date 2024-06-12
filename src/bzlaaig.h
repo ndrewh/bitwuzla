@@ -31,6 +31,8 @@ struct BzlaAIG
   int32_t next; /* next AIG id for unique table */
   uint8_t mark : 2;
   uint8_t is_var : 1; /* is it an AIG variable or an AND? */
+  uint8_t hint : 1;
+  uint8_t has_hint : 1;
   uint32_t decision_group; /* decision group for sat solver */
   uint32_t local;
   int32_t children[]; /* only allocated for AIG AND */

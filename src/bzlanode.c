@@ -1184,6 +1184,9 @@ really_deallocate_exp(Bzla *bzla, BzlaNode *exp)
   bzla_sort_release(bzla, bzla_node_get_sort_id(exp));
   bzla_node_set_sort_id(exp, 0);
 
+  if (exp->hint)
+    bzla_bv_free(bzla->mm, exp->hint);
+
   bzla_mem_free(mm, exp, exp->bytes);
 }
 
