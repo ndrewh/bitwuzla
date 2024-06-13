@@ -5006,8 +5006,11 @@ void bitwuzla_set_hint(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint64_t hi
   // Don't overwrite existing hints, and don't include hints for constants!
   if (!real_exp->hint && !bzla_node_is_bv_const(real_exp)) {
       uint32_t width = bzla_node_bv_get_width(bzla, real_exp);
-      BzlaBitVector *bv = bzla_bv_uint64_to_bv(bzla->mm, hint, width);
-      real_exp->hint = bv;
+      if (bzla_node_is_inverted(exp)) {
+          real_exp->hint = bzla_bv_uint64_to_bv(bzla->mm, ~hint, width);
+      } else {
+          real_exp->hint = bzla_bv_uint64_to_bv(bzla->mm, hint, width);
+      }
   }
 }
 
