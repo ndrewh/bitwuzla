@@ -4999,10 +4999,16 @@ void bitwuzla_set_hint(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint64_t hi
 
   Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
   BzlaNode *exp = BZLA_IMPORT_BITWUZLA_TERM(term);
-  uint32_t width = bzla_node_bv_get_width(bzla, exp);
+  BzlaNode *real_exp = bzla_node_real_addr(exp);
 
-  BzlaBitVector *bv = bzla_bv_uint64_to_bv(bzla->mm, hint, width);
-  exp->hint = bv;
+  BZLA_ABORT(!bzla_node_is_bv(bzla, real_exp), "expected bit-vector sort");
+
+  // Don't overwrite existing hints, and don't include hints for constants!
+  if (!real_exp->hint && !bzla_node_is_bv_const(real_exp)) {
+      uint32_t width = bzla_node_bv_get_width(bzla, real_exp);
+      BzlaBitVector *bv = bzla_bv_uint64_to_bv(bzla->mm, hint, width);
+      real_exp->hint = bv;
+  }
 }
 
 void bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm *hint, int free_hint) {
@@ -5013,15 +5019,17 @@ void bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const B
   BzlaNode *exp = BZLA_IMPORT_BITWUZLA_TERM(term);
   BzlaNode *hintexp = BZLA_IMPORT_BITWUZLA_TERM(hint);
 
-  assert(bzla_node_bv_get_width(bzla, hintexp) == bzla_node_bv_get_width(bzla, exp));
-  assert(bzla_node_is_bv_const(hintexp));
-  BzlaBitVector *bv = bzla_bv_copy(bzla->mm, bzla_node_bv_const_get_bits(hintexp));
+  BZLA_ABORT(bzla_node_bv_get_width(bzla, hintexp) != bzla_node_bv_get_width(bzla, exp), "width mismatch");
+  BZLA_ABORT(!bzla_node_is_bv_const(hintexp), "hintexp should be bv const");
 
-  assert(bzla_node_is_bv(exp));
-  if (!bzla_node_is_bv_const(exp))
-      exp->hint = bv;
+  BZLA_ABORT(!bzla_node_is_bv(bzla, exp), "exp should be bv");
+  BZLA_ABORT(bzla_node_is_inverted(exp), "exp inverted?");
+  if (!bzla_node_is_bv_const(exp) && !exp->hint) {
+      exp->hint = bzla_bv_copy(bzla->mm, bzla_node_bv_const_get_bits(hintexp));
+  }
 
   if (free_hint) {
       bzla_node_release(bzla, hintexp);
+      bzla_node_dec_ext_ref_counter(bzla, hintexp);
   }
 }

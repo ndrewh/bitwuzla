@@ -692,7 +692,7 @@ bdcrec(BzlaDumpContext *bdc, BzlaNode *start, FILE *file)
 
         // hint printing
         if (node->hint) {
-          char *cbits = bzla_bv_to_char(bdc->bzla->mm, node->hint);
+          char *cbits = bzla_bv_to_dec_char(bdc->bzla->mm, node->hint);
           fprintf(file, "%d constd %d", ++bdc->maxid, bzla_bv_get_width(node->hint));
           fprintf(file, " %s\n", cbits);
           bzla_mem_freestr(bdc->bzla->mm, cbits);
@@ -835,7 +835,8 @@ bzla_dumpbtor_dump_bdc(BzlaDumpContext *bdc, FILE *file)
             bzla_sort_fun_get_codomain(bdc->bzla, bzla_node_get_sort_id(node)));
       else
         len = bzla_node_bv_get_width(bdc->bzla, node);
-      fprintf(file, "%d 0 root %u %d\n", id, len, bdcid(bdc, node));
+      /* fprintf(file, "%d 0 root %u %d\n", id, len, bdcid(bdc, node)); */
+      fprintf(file, "%d root %u %d\n", id, len, bdcid(bdc, node));
     }
     else
       fprintf(file, "assert %d\n", bdcid(bdc, node));

@@ -2316,7 +2316,7 @@ static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
 
   if (exp->hint) {
     BzlaBitVector *hint = exp->hint;
-    assert(bzla_node_is_bv(exp));
+    assert(bzla_node_is_bv(bzla, exp));
     uint32_t width = bzla_node_bv_get_width(bzla, exp);
     for (uint32_t i=0; i<width; i++) {
       BzlaAIG *aig = exp->av->aigs[i];

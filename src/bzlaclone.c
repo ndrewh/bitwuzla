@@ -1177,6 +1177,8 @@ clone_aux_bzla(Bzla *bzla,
     {
       allocated += MEM_PTR_HASH_TABLE(bzla_node_lambda_get_static_rho(cur));
     }
+    if (cur->hint)
+      allocated += MEM_BITVEC(cur->hint);
   }
   /* Note: hash table is initialized with size 1 */
   allocated += (emap->table->size - 1) * sizeof(BzlaPtrHashBucket *)

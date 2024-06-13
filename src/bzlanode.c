@@ -1157,6 +1157,12 @@ erase_local_data_exp(Bzla *bzla, BzlaNode *exp)
     bzla_aigvec_release_delete(bzla->avmgr, exp->av);
     exp->av = 0;
   }
+
+  if (exp->hint)
+  {
+    bzla_bv_free(mm, exp->hint);
+    exp->hint = 0;
+  }
   exp->erased = 1;
 }
 

@@ -4017,6 +4017,8 @@ void bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const B
 
 void bitwuzla_dump_formula_smt_extended(Bitwuzla *bitwuzla, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file);
 
+#define BITWUZLA_SUPPORTS_HINTS 1
+
 /* -------------------------------------------------------------------------- */
 
 #if __cplusplus
