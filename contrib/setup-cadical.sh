@@ -14,7 +14,7 @@ set -e -o pipefail
 source "$(dirname "$0")/setup-utils.sh"
 
 CADICAL_DIR="${DEPS_DIR}/cadical"
-COMMIT_ID="1.9.4-flippable"
+COMMIT_ID="1.9.4-initialization"
 
 TAR_ARGS=""
 if is_windows; then
@@ -22,7 +22,7 @@ if is_windows; then
   TAR_ARGS="--exclude src/makefile"
 fi
 
-# download_github "ndrewh/cadical" "$COMMIT_ID" "$CADICAL_DIR" "$TAR_ARGS"
+download_github "ndrewh/cadical" "$COMMIT_ID" "$CADICAL_DIR" "$TAR_ARGS"
 cd "${CADICAL_DIR}"
 
 if is_windows; then
