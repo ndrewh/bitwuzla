@@ -2313,21 +2313,33 @@ bzla_simplify_exp(Bzla *bzla, BzlaNode *exp)
 
 static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
   assert(exp->av);
+  assert(bzla_node_is_regular(exp));
 
   if (exp->hint) {
     BzlaBitVector *hint = exp->hint;
     assert(bzla_node_is_bv(bzla, exp));
     uint32_t width = bzla_node_bv_get_width(bzla, exp);
-    for (uint32_t i=0; i<width; i++) {
+    for (uint32_t i=0, j=width-1; i<width; i++, j--) {
       BzlaAIG *aig = exp->av->aigs[i];
       if (aig == BZLA_AIG_TRUE || aig == BZLA_AIG_FALSE) continue;
 
+      BzlaAIG *real = BZLA_REAL_ADDR_AIG(aig);
+
+      int new_hint;
       if (BZLA_IS_INVERTED_AIG(aig)) {
-        aig->hint = bzla_bv_get_bit(hint, i) ? 0 : 1;
+        new_hint = bzla_bv_get_bit(hint, j) ? 0 : 1;
       } else {
-        aig->hint = bzla_bv_get_bit(hint, i) ? 1 : 0;
+        new_hint = bzla_bv_get_bit(hint, j) ? 1 : 0;
       }
-      aig->has_hint = 1;
+
+      if (real->has_hint && real->hint != new_hint) {
+        BZLALOG(2, "Hint mismatch %d %d\n", real->hint, new_hint);
+      }
+
+      if (bzla_node_is_bv_var(exp)) {
+        real->hint = new_hint;
+        real->has_hint = 1;
+      }
     }
   }
 }
@@ -2426,6 +2438,7 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
           }
         }
         BZLALOG(2, "  synthesized: %s", bzla_util_node2string(cur));
+        propagate_hints_to_aig(bzla, cur);
         bzla_aigvec_to_sat_tseitin(avmgr, cur->av);
 
         /* continue synthesizing children for apply and feq nodes if
@@ -2436,6 +2449,7 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
       {
         cur->av = bzla_aigvec_var(avmgr, bzla_node_bv_get_width(bzla, cur));
         BZLALOG(2, "  synthesized: %s", bzla_util_node2string(cur));
+        propagate_hints_to_aig(bzla, cur);
         bzla_aigvec_to_sat_tseitin(avmgr, cur->av);
       }
       /* we stop at function nodes as they will be lazily synthesized and
@@ -2602,6 +2616,7 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
             if (invert_av0) bzla_aigvec_invert(avmgr, av0);
             if (invert_av1) bzla_aigvec_invert(avmgr, av1);
           }
+          propagate_hints_to_aig(bzla, cur);
           if (!opt_lazy_synth) bzla_aigvec_to_sat_tseitin(avmgr, cur->av);
         }
         else
@@ -2652,8 +2667,8 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
       }
       assert(cur->av);
 
-      propagate_hints_to_aig(bzla, cur);
       BZLALOG(2, "  synthesized: %s", bzla_util_node2string(cur));
+      propagate_hints_to_aig(bzla, cur);
       bzla_aigvec_to_sat_tseitin(avmgr, cur->av);
     }
   }

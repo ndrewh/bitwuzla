@@ -1604,7 +1604,11 @@ parse_hint(BzlaBZLAParser *parser, uint32_t width)
   assert(bitwuzla_term_is_bv_value(r));
   assert(bitwuzla_term_bv_get_size(r) == width);
 
-  bitwuzla_set_hint_exp(parser->bitwuzla, l, r, true); // true -> frees r
+  int res = bitwuzla_set_hint_exp(parser->bitwuzla, l, r, true); // true -> frees r
+  if (!res) {
+    (void) perr_btor(parser, "bad hint");
+    goto RELEASE_L_AND_RETURN_ERROR;
+  }
   return l;
 }
 

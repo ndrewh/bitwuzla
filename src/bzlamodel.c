@@ -983,6 +983,10 @@ bzla_model_get_bv_assignment(Bzla *bzla, BzlaNode *exp)
       return bzla_bv_new(
           mm, bzla_sort_fp_get_bv_width(bzla, bzla_node_get_sort_id(real_exp)));
     }
+    else if (real_exp->hint) {
+      if (!bzla_node_is_inverted(exp)) return bzla_bv_copy(mm, real_exp->hint);
+      else return bzla_bv_neg(mm, real_exp->hint);
+    }
     return bzla_bv_new(mm, bzla_node_bv_get_width(real_exp->bzla, real_exp));
   }
 

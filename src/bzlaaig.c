@@ -200,6 +200,27 @@ inc_aig_ref_counter_and_return(BzlaAIG *aig)
   return aig;
 }
 
+static int get_hint(BzlaAIG *aig, int *hint) {
+  if (aig == BZLA_AIG_TRUE) {
+    *hint = 1;
+    return 1;
+  }
+  if (aig == BZLA_AIG_FALSE) {
+    *hint = 0;
+    return 1;
+  }
+
+  int has_hint = BZLA_REAL_ADDR_AIG(aig)->has_hint;
+  if (has_hint) {
+    if (BZLA_IS_INVERTED_AIG(aig)) *hint = BZLA_REAL_ADDR_AIG(aig)->hint ? 0 : 1;
+    else *hint = BZLA_REAL_ADDR_AIG(aig)->hint ? 1 : 0;
+
+    return 1;
+  }
+
+  return 0;
+}
+
 static int32_t *
 find_and_aig(BzlaAIGMgr *amgr, BzlaAIG *left, BzlaAIG *right)
 {
@@ -730,6 +751,12 @@ BZLA_AIG_TWO_LEVEL_OPT_TRY_AGAIN:
     inc_aig_ref_counter(right);
     assert(amgr->table.num_elements < INT32_MAX);
     amgr->table.num_elements++;
+
+    int left_hint, right_hint;
+    if (get_hint(left, &left_hint) && get_hint(right, &right_hint)) {
+      res->hint = (left_hint && right_hint) ? 1 : 0;
+      res->has_hint = 1;
+    }
   }
   else
   {
@@ -1045,8 +1072,12 @@ set_next_id_aig_mgr(BzlaAIGMgr *amgr, BzlaAIG *root)
     /* ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, rand() % 5); */
   }
 
+  static int hint_counter = 0;
   if (bzla_opt_get(amgr->smgr->bzla, BZLA_OPT_SAT_ENGINE_POLARITY_INITIALIZATION) && root->has_hint) {
     ccadical_set_polarity_hint(amgr->smgr->solver, root->cnf_id, root->hint);
+    /* if (++hint_counter % 1000 == 0) { */
+    /*   fprintf(stderr, "hints %d\n", hint_counter); */
+    /* } */
   }
 
   assert(root->cnf_id > 0);

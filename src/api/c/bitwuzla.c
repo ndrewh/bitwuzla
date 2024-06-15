@@ -5014,7 +5014,7 @@ void bitwuzla_set_hint(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint64_t hi
   }
 }
 
-void bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm *hint, int free_hint) {
+int bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm *hint, int free_hint) {
   BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
   BZLA_CHECK_ARG_NOT_NULL(term);
 
@@ -5026,13 +5026,33 @@ void bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const B
   BZLA_ABORT(!bzla_node_is_bv_const(hintexp), "hintexp should be bv const");
 
   BZLA_ABORT(!bzla_node_is_bv(bzla, exp), "exp should be bv");
-  BZLA_ABORT(bzla_node_is_inverted(exp), "exp inverted?");
-  if (!bzla_node_is_bv_const(exp) && !exp->hint) {
-      exp->hint = bzla_bv_copy(bzla->mm, bzla_node_bv_const_get_bits(hintexp));
+
+  BzlaNode *real_exp = bzla_node_real_addr(exp);
+  BzlaBitVector *new_hint;
+  if (bzla_node_is_inverted(exp)) {
+      new_hint = bzla_bv_not(bzla->mm, bzla_node_bv_const_get_bits(hintexp));
+  } else {
+      new_hint = bzla_bv_copy(bzla->mm, bzla_node_bv_const_get_bits(hintexp));
+  }
+
+  int ret = 1;
+  // XXX: Should we try to propagate ints for other nodes? We run into consistency issues when we do...
+  if (bzla_node_is_bv_var(real_exp) && !real_exp->hint) {
+      real_exp->hint = new_hint;
+  } else if (real_exp->hint) {
+      if (bzla_bv_compare(new_hint, real_exp->hint) != 0) {
+          BZLA_WARN(true, "hint mismatch\n");
+          ret = 0;
+      }
+      bzla_bv_free(bzla->mm, new_hint);
+  } else {
+      bzla_bv_free(bzla->mm, new_hint);
   }
 
   if (free_hint) {
       bzla_node_release(bzla, hintexp);
       bzla_node_dec_ext_ref_counter(bzla, hintexp);
   }
+
+  return ret;
 }
