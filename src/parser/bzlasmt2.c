@@ -1269,6 +1269,37 @@ pushch_smt2(BzlaSMT2Parser *parser, int32_t ch)
 }
 
 static int32_t
+check_comment(BzlaSMT2Parser *parser, char *comment) {
+  char *part = strtok (comment, ",");
+  int i = 0;
+
+  char *symbol_name;
+  uint64_t val;
+  int done = 0;
+  while (part != NULL && i < 3)
+  {
+    if (i == 0) {
+      if (strcmp(part, "hint") != 0) break;
+    } else if (i == 1) {
+      symbol_name = part;
+    } else if (i == 2) {
+      val = strtoull(part, NULL, 16);
+      done = 1;
+    }
+    part = strtok (NULL, ",");
+    i++;
+  }
+
+  if (done) {
+    BzlaSMT2Node *node = find_symbol_smt2(parser, symbol_name);
+    if (!node) return !perr_smt2(parser, "bad hinted symbol %s", symbol_name);
+    if (!node->exp) return !perr_smt2(parser, "hinted symbol without node?");
+    bitwuzla_set_hint(parser->bitwuzla, node->exp, val);
+  }
+  return 1;
+}
+
+static int32_t
 read_token_aux_smt2(BzlaSMT2Parser *parser)
 {
   BzlaSMT2Node *node;
@@ -1294,7 +1325,12 @@ RESTART:
       {
         assert(!BZLA_INVALID_TAG_SMT2);
         return !perr_smt2(parser, "unexpected end-of-file in comment");
-      }
+      } else pushch_smt2(parser, ch);
+
+    char *comment = bzla_mem_strdup(parser->mem, parser->token.start);
+    if (!check_comment(parser, comment)) return !perr_smt2(parser, "check_comment error");
+    bzla_mem_freestr(parser->mem, comment);
+    BZLA_RESET_STACK(parser->token);
     goto RESTART;
   }
   cc = cc_smt2(parser, ch);

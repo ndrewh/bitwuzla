@@ -54,8 +54,9 @@ init(BzlaSATMgr *smgr)
   }
 
   /* ccadical_set_option(slv, "rephaseint", 1e4); */
-  ccadical_set_option(slv, "verbose", 2);
-  ccadical_set_option(slv, "log", 1);
+
+  /* ccadical_set_option(slv, "verbose", 2); */
+  /* ccadical_set_option(slv, "log", 1); */
 
   return slv;
 }
