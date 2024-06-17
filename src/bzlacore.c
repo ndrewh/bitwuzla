@@ -1368,6 +1368,20 @@ occurrence_check(Bzla *bzla, BzlaNode *left, BzlaNode *right)
   return is_cyclic;
 }
 
+static void bzla_slice_hint(Bzla *bzla, BzlaNode *var, BzlaNode *slice, int up, int lo) {
+  if (bzla_node_real_addr(var)->hint) {
+    BzlaBitVector *t;
+    if (bzla_node_is_inverted(var)) {
+      t = bzla_bv_not(bzla->mm, bzla_node_real_addr(var)->hint);
+    } else {
+      t = bzla_bv_copy(bzla->mm, bzla_node_real_addr(var)->hint);
+    }
+
+    slice->hint = bzla_bv_slice(bzla->mm, t, up, lo);
+    bzla_bv_free(bzla->mm, t);
+  }
+}
+
 /* checks if we can substitute and normalizes arguments to substitution,
  * substitute left_result with right_result, exp is child of AND_NODE */
 static bool
@@ -1469,6 +1483,7 @@ normalize_substitution(Bzla *bzla,
           sort =
               bzla_sort_bv(bzla, bzla_node_bv_get_width(bzla, var) - leadings);
           lambda = bzla_exp_var(bzla, sort, 0);
+          bzla_slice_hint(bzla, var, lambda, bzla_node_bv_get_width(bzla, var) - leadings, 0);
           bzla_sort_release(bzla, sort);
           tmp = bzla_exp_bv_concat(bzla, const_exp, lambda);
           insert_varsubst_constraint(bzla, var, tmp);
@@ -1490,6 +1505,7 @@ normalize_substitution(Bzla *bzla,
           sort =
               bzla_sort_bv(bzla, bzla_node_bv_get_width(bzla, var) - leadings);
           lambda = bzla_exp_var(bzla, sort, 0);
+          bzla_slice_hint(bzla, var, lambda, bzla_node_bv_get_width(bzla, var) - leadings, 0);
           bzla_sort_release(bzla, sort);
           tmp = bzla_exp_bv_concat(bzla, const_exp, lambda);
           insert_varsubst_constraint(bzla, var, tmp);
@@ -2341,6 +2357,10 @@ static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
         real->has_hint = 1;
       }
     }
+  }
+
+  if (bzla_node_is_bv_var(exp) && !exp->hint) {
+    fprintf(stderr, "Missing hint on %s\n", bzla_node_get_symbol(bzla, exp));
   }
 }
 

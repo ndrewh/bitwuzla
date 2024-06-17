@@ -72,8 +72,12 @@ mark_uc(Bzla *bzla, BzlaIntHashTable *uc, BzlaNode *exp)
     subst           = bzla_exp_uf(bzla, bzla_node_get_sort_id(exp), 0);
     subst->is_array = exp->is_array;
   }
-  else
+  else {
     subst = bzla_exp_var(bzla, bzla_node_get_sort_id(exp), 0);
+    if (exp->hint) {
+      subst->hint = bzla_bv_copy(bzla->mm, exp->hint);
+    }
+  }
 
   bzla_insert_substitution(bzla, exp, subst, false);
   bzla_node_release(bzla, subst);

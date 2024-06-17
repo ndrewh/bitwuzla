@@ -1327,6 +1327,7 @@ RESTART:
         return !perr_smt2(parser, "unexpected end-of-file in comment");
       } else pushch_smt2(parser, ch);
 
+    pushch_smt2(parser, 0);
     char *comment = bzla_mem_strdup(parser->mem, parser->token.start);
     if (!check_comment(parser, comment)) return !perr_smt2(parser, "check_comment error");
     bzla_mem_freestr(parser->mem, comment);

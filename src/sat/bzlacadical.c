@@ -53,10 +53,15 @@ init(BzlaSATMgr *smgr)
     /* ccadical_set_option(slv, "shuffle", 1); */
   }
 
+  if (bzla_opt_get(smgr->bzla, BZLA_OPT_SAT_ENGINE_POLARITY_INITIALIZATION)) {
+    ccadical_set_option(slv, "lucky", 0);
+  }
+
   /* ccadical_set_option(slv, "rephaseint", 1e4); */
 
   /* ccadical_set_option(slv, "verbose", 2); */
   /* ccadical_set_option(slv, "log", 1); */
+
 
   return slv;
 }
@@ -86,10 +91,10 @@ deref(BzlaSATMgr *smgr, int32_t lit)
 static void
 enable_verbosity(BzlaSATMgr *smgr, int32_t level)
 {
-  /* if (level <= 1) */
-  /*   ccadical_set_option(smgr->solver, "quiet", 1); */
-  /* else if (level >= 2) */
-  /*   ccadical_set_option(smgr->solver, "verbose", level - 2); */
+  if (level <= 1)
+    ccadical_set_option(smgr->solver, "quiet", 1);
+  else if (level >= 2)
+    ccadical_set_option(smgr->solver, "verbose", level - 2);
 }
 
 static int32_t

@@ -291,6 +291,8 @@ bzla_eliminate_slices_on_bv_vars(Bzla *bzla)
     s1     = sorted_slices[slices->count - 1];
     sort   = bzla_sort_bv(bzla, s1->upper - s1->lower + 1);
     result = bzla_exp_var(bzla, sort, 0);
+    if (var->hint)
+      result->hint = bzla_bv_slice(bzla->mm, var->hint, s1->upper, s1->lower);
     bzla_sort_release(bzla, sort);
     delete_slice(bzla, s1);
     for (i = (int32_t) slices->count - 2; i >= 0; i--)
@@ -298,6 +300,9 @@ bzla_eliminate_slices_on_bv_vars(Bzla *bzla)
       s1         = sorted_slices[i];
       sort       = bzla_sort_bv(bzla, s1->upper - s1->lower + 1);
       lambda_var = bzla_exp_var(bzla, sort, 0);
+      if (var->hint)
+        lambda_var->hint = bzla_bv_slice(bzla->mm, var->hint, s1->upper, s1->lower);
+
       bzla_sort_release(bzla, sort);
       temp = bzla_exp_bv_concat(bzla, result, lambda_var);
       bzla_node_release(bzla, result);

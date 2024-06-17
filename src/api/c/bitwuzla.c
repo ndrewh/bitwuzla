@@ -5002,6 +5002,7 @@ void bitwuzla_set_hint(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint64_t hi
   BzlaNode *real_exp = bzla_node_real_addr(exp);
 
   BZLA_ABORT(!bzla_node_is_bv(bzla, real_exp), "expected bit-vector sort");
+  BZLA_ABORT(real_exp->av, "bitwuzla_set_hint failed: already bitblasted");
 
   // Don't overwrite existing hints, and don't include hints for constants!
   if (!real_exp->hint && !bzla_node_is_bv_const(real_exp)) {
@@ -5029,6 +5030,8 @@ int bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const Bi
 
   BzlaNode *real_exp = bzla_node_real_addr(exp);
   BzlaBitVector *new_hint;
+
+  BZLA_ABORT(real_exp->av, "bitwuzla_set_hint_exp failed: already bitblasted");
   if (bzla_node_is_inverted(exp)) {
       new_hint = bzla_bv_not(bzla->mm, bzla_node_bv_const_get_bits(hintexp));
   } else {
