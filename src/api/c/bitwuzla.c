@@ -4978,7 +4978,7 @@ void bitwuzla_optimistic(Bitwuzla *bitwuzla, const BitwuzlaTerm *keep) {
   }
 }
 
-void bitwuzla_set_decision_group(Bitwuzla *bitwuzla, uint32_t decision_group) {
+void bitwuzla_set_default_decision_group(Bitwuzla *bitwuzla, uint32_t decision_group) {
   BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
 
   Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
@@ -5039,7 +5039,7 @@ int bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const Bi
   }
 
   int ret = 1;
-  // XXX: Should we try to propagate ints for other nodes? We run into consistency issues when we do...
+  // XXX: Should we try to propagate hints for other nodes? We run into consistency issues when we do...
   if (bzla_node_is_bv_var(real_exp) && !real_exp->hint) {
       real_exp->hint = new_hint;
   } else if (real_exp->hint) {
@@ -5058,4 +5058,21 @@ int bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const Bi
   }
 
   return ret;
+}
+
+void bitwuzla_set_decision_group(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint32_t decision_group) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+  BZLA_CHECK_ARG_NOT_NULL(term);
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  BzlaNode *exp = BZLA_IMPORT_BITWUZLA_TERM(term);
+  BzlaNode *real_exp = bzla_node_real_addr(exp);
+
+  BZLA_ABORT(!bzla_node_is_bv(bzla, real_exp), "expected bit-vector sort");
+  BZLA_ABORT(real_exp->av, "bitwuzla_set_hint failed: already bitblasted");
+
+  // Don't overwrite existing hints, and don't include hints for constants!
+  if (!real_exp->decision_group && !bzla_node_is_bv_const(real_exp)) {
+    real_exp->decision_group = decision_group;
+  }
 }

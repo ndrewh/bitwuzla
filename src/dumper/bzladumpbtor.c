@@ -418,7 +418,6 @@ bdcnode(BzlaDumpContext *bdc, BzlaNode *node, FILE *file)
   /* print id, operator and sort */
   if (bdc->version == 1)
   {
-    /* fprintf(file, "%d %d %s", bdcid(bdc, node), node->decision_group, op); */
     fprintf(file, "%d %s", bdcid(bdc, node), op);
 
     /* print index bit width of arrays */
@@ -698,6 +697,10 @@ bdcrec(BzlaDumpContext *bdc, BzlaNode *start, FILE *file)
           bzla_mem_freestr(bdc->bzla->mm, cbits);
           uint32_t hint_id = bdc->maxid;
           fprintf(file, "%d hint %d %d %d\n", ++bdc->maxid, bzla_bv_get_width(node->hint), bdcid(bdc, node), hint_id);
+        }
+
+        if (node->decision_group) {
+          fprintf(file, "%d decisiongroup %ld %d %d\n", ++bdc->maxid, 8*sizeof(node->decision_group), bdcid(bdc, node), node->decision_group);
         }
       }
     }

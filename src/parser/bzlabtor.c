@@ -1612,6 +1612,35 @@ parse_hint(BzlaBZLAParser *parser, uint32_t width)
   return l;
 }
 
+static const BitwuzlaTerm *
+parse_decisiongroup(BzlaBZLAParser *parser, uint32_t width)
+{
+  assert(width);
+
+  const BitwuzlaTerm *l;
+  uint32_t dg;
+
+  if (parse_space(parser)) return 0;
+
+  if (!(l = parse_exp(parser, width, false, true, 0))) return 0;
+
+  if (parse_space(parser))
+  {
+  RELEASE_L_AND_RETURN_ERROR:
+    return 0;
+  }
+
+  if (parse_positive_int(parser, &dg))
+    goto RELEASE_L_AND_RETURN_ERROR;
+
+  assert(bitwuzla_term_is_bv_value(r));
+  assert(bitwuzla_term_bv_get_size(r) == width);
+
+  bitwuzla_set_decision_group(parser->bitwuzla, l, dg); // true -> frees r
+  return l;
+}
+
+
 static void
 new_parser(BzlaBZLAParser *parser, BzlaOpParser op_parser, const char *op)
 {
@@ -1751,6 +1780,7 @@ new_bzla_parser(Bitwuzla *bitwuzla)
   new_parser(res, parse_lambda, "lambda");
   new_parser(res, parse_apply, "apply");
   new_parser(res, parse_hint, "hint");
+  new_parser(res, parse_decisiongroup, "decisiongroup");
 
   return res;
 }
@@ -1792,7 +1822,7 @@ parse_bzla_parser(BzlaBZLAParser *parser,
   int32_t ch;
   uint32_t width;
   const BitwuzlaTerm *e;
-  uint32_t decision_group;
+  // uint32_t decision_group;
 
   assert(infile);
   assert(infile_name);
