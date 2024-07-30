@@ -1378,6 +1378,7 @@ static void bzla_slice_hint(Bzla *bzla, BzlaNode *var, BzlaNode *slice, int up, 
     }
 
     slice->hint = bzla_bv_slice(bzla->mm, t, up, lo);
+    slice->decision_group = bzla_node_real_addr(var)->decision_group;
     bzla_bv_free(bzla->mm, t);
   }
 }
@@ -2333,6 +2334,8 @@ static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
 
   if (exp->hint) {
     BzlaBitVector *hint = exp->hint;
+    uint32_t decision_group = exp->decision_group;
+
     assert(bzla_node_is_bv(bzla, exp));
     uint32_t width = bzla_node_bv_get_width(bzla, exp);
     for (uint32_t i=0, j=width-1; i<width; i++, j--) {
@@ -2341,22 +2344,31 @@ static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
 
       BzlaAIG *real = BZLA_REAL_ADDR_AIG(aig);
 
-      int new_hint;
-      if (BZLA_IS_INVERTED_AIG(aig)) {
-        new_hint = bzla_bv_get_bit(hint, j) ? 0 : 1;
-      } else {
-        new_hint = bzla_bv_get_bit(hint, j) ? 1 : 0;
+      if (hint) {
+        int new_hint;
+        if (BZLA_IS_INVERTED_AIG(aig)) {
+          new_hint = bzla_bv_get_bit(hint, j) ? 0 : 1;
+        } else {
+          new_hint = bzla_bv_get_bit(hint, j) ? 1 : 0;
+        }
+
+        if (real->has_hint && real->hint != new_hint) {
+          BZLALOG(2, "Hint mismatch %d %d\n", real->hint, new_hint);
+        }
+
+        if (bzla_node_is_bv_var(exp)) {
+          real->hint = new_hint;
+          real->has_hint = 1;
+        }
       }
 
-      if (real->has_hint && real->hint != new_hint) {
-        BZLALOG(2, "Hint mismatch %d %d\n", real->hint, new_hint);
-      }
-
-      if (bzla_node_is_bv_var(exp)) {
-        real->hint = new_hint;
-        real->has_hint = 1;
+      if (decision_group) {
+        // We always intentionally overwrite the decision group that may have been
+        // propagated from the AIG children (see amgr->propagate_decision_groups)
+        real->decision_group = decision_group;
       }
     }
+
   }
 
   if (bzla_node_is_bv_var(exp) && !exp->hint) {
@@ -2411,7 +2423,6 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
     assert(!bzla_node_is_proxy(cur));
     assert(!bzla_node_is_simplified(cur));
 
-    avmgr->amgr->mark_decision_group = cur->decision_group;
     if (bzla_node_is_synth(cur)) continue;
 
     count++;
@@ -2700,7 +2711,6 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
         bzla->msg, 3, "synthesized %u expressions into AIG vectors", count);
 
   bzla->time.synth_exp += bzla_util_time_stamp() - start;
-  avmgr->amgr->mark_decision_group = 0;
 }
 
 /* forward assumptions to the SAT solver */

@@ -48,7 +48,7 @@ init(BzlaSATMgr *smgr)
   ccadical_set_option(slv, "seed", bzla_rng_rand(smgr->bzla->rng));
   if (bzla_opt_get(smgr->bzla, BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING)) {
     ccadical_set_option(slv, "nodecidenobump", 1);
-    ccadical_set_option(slv, "decisiongroupshuffle", 1);
+    // ccadical_set_option(slv, "decisiongroupshuffle", 1);
     /* ccadical_set_option(slv, "decompose", 0); */
     /* ccadical_set_option(slv, "shuffle", 1); */
   }
@@ -57,10 +57,22 @@ init(BzlaSATMgr *smgr)
     ccadical_set_option(slv, "lucky", 0);
   }
 
+  if (getenv("BZLA_CADICAL_TEST") && !strcmp(getenv("BZLA_CADICAL_TEST"), "1")){
+    // ccadical_set_option(slv, "hintsremoveonconflict", 1);
+    // ccadical_set_option(slv, "reweightonconflict", 1);
+    // ccadical_set_option(slv, "bumpdecision", 1);
+    // ccadical_set_option(slv, "reweightonconflict", 1);
+
+    ccadical_set_option(slv, "nobumpnondecisions", 1);
+    ccadical_set_option(slv, "autodecisiongroups", 1);
+  }
+  // ccadical_set_option(slv, "compact", 0);
+  // ccadical_set_option(slv, "probeonlydecidable", 1);
+
   /* ccadical_set_option(slv, "rephaseint", 1e4); */
 
-  /* ccadical_set_option(slv, "verbose", 2); */
-  /* ccadical_set_option(slv, "log", 1); */
+  // ccadical_set_option(slv, "verbose", 2);
+  // ccadical_set_option(slv, "log", 1);
 
 
   return slv;

@@ -699,8 +699,8 @@ bdcrec(BzlaDumpContext *bdc, BzlaNode *start, FILE *file)
           fprintf(file, "%d hint %d %d %d\n", ++bdc->maxid, bzla_bv_get_width(node->hint), bdcid(bdc, node), hint_id);
         }
 
-        if (node->decision_group) {
-          fprintf(file, "%d decisiongroup %ld %d %d\n", ++bdc->maxid, 8*sizeof(node->decision_group), bdcid(bdc, node), node->decision_group);
+        if (node->decision_group && bzla_node_is_bv(bdc->bzla, node)) {
+          fprintf(file, "%d decisiongroup %d %d %d\n", ++bdc->maxid, bzla_node_bv_get_width(bdc->bzla, node), bdcid(bdc, node), node->decision_group);
         }
       }
     }

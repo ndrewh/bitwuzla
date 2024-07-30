@@ -5076,3 +5076,10 @@ void bitwuzla_set_decision_group(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, u
     real_exp->decision_group = decision_group;
   }
 }
+
+void bitwuzla_set_decision_group_propagation(Bitwuzla *bitwuzla, int propagate) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  bzla->avmgr->amgr->propagate_decision_groups = propagate;
+}

@@ -58,7 +58,7 @@ struct BzlaAIGMgr
   BzlaSATMgr *smgr;
   BzlaAIGPtrStack id2aig; /* id to AIG node */
   BzlaIntStack cnfid2aig; /* cnf id to AIG id */
-  uint32_t mark_decision_group;
+  uint8_t propagate_decision_groups: 1; // whether to propagate decision groups to AIG
 
   uint_least64_t cur_num_aigs;     /* current number of ANDs */
   uint_least64_t cur_num_aig_vars; /* current number of AIG variables */

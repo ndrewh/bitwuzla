@@ -77,7 +77,6 @@ bzla_aigvec_var(BzlaAIGVecMgr *avmgr, uint32_t width)
   BzlaAIGVec *result;
   uint32_t i;
 
-  /* fprintf(stderr, "aigvec_var %d\n", avmgr->amgr->mark_decision_group); */
   result = new_aigvec(avmgr, width);
   for (i = 1; i <= width; i++)
     result->aigs[width - i] = bzla_aig_var(avmgr->amgr);

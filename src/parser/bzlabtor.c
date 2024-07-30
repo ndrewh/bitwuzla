@@ -1633,9 +1633,6 @@ parse_decisiongroup(BzlaBZLAParser *parser, uint32_t width)
   if (parse_positive_int(parser, &dg))
     goto RELEASE_L_AND_RETURN_ERROR;
 
-  assert(bitwuzla_term_is_bv_value(r));
-  assert(bitwuzla_term_bv_get_size(r) == width);
-
   bitwuzla_set_decision_group(parser->bitwuzla, l, dg); // true -> frees r
   return l;
 }

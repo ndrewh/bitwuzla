@@ -2782,7 +2782,7 @@ sat_fun_solver(BzlaFunSolver *slv)
       while (BZLA_COUNT_STACK(bzla->decision_group_weights) > 0) {
         unsigned int weight = BZLA_POP_STACK(bzla->decision_group_weights);
         unsigned int group = BZLA_POP_STACK(bzla->decision_group_weights);
-        /* ccadical_set_decision_group_weight(bzla_get_sat_mgr(bzla)->solver, group, weight); */
+        ccadical_set_decision_group_weight(bzla_get_sat_mgr(bzla)->solver, group, weight);
       }
 
       /* make SAT call on bv skeleton */

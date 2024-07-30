@@ -77,6 +77,9 @@ mark_uc(Bzla *bzla, BzlaIntHashTable *uc, BzlaNode *exp)
     if (exp->hint) {
       subst->hint = bzla_bv_copy(bzla->mm, exp->hint);
     }
+    if (exp->decision_group) {
+      subst->decision_group = exp->decision_group;
+    }
   }
 
   bzla_insert_substitution(bzla, exp, subst, false);

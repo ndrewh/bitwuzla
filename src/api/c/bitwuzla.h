@@ -4008,17 +4008,20 @@ void bitwuzla_dump_formula_and_term(Bitwuzla *bitwuzla, const BitwuzlaTerm *term
 void bitwuzla_optimistic(Bitwuzla *bitwuzla, const BitwuzlaTerm *keep);
 const BitwuzlaTerm** bitwuzla_get_term_for_cnf(Bitwuzla *bitwuzla, int cnf_id, int *result_size);
 
-void bitwuzla_set_default_decision_group(Bitwuzla *bitwuzla, uint32_t group);
 void bitwuzla_force_synthesize(Bitwuzla *bitwuzla, const BitwuzlaTerm *term);
 void bitwuzla_set_sat_init(Bitwuzla *bitwuzla, void (*fun)(void *), void *state);
 void bitwuzla_set_decision_group_weight(Bitwuzla *bitwuzla, uint32_t decision_group, uint32_t weight);
 void bitwuzla_set_hint(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint64_t hint);
 int bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const BitwuzlaTerm *hint, int free_hint);
+
 void bitwuzla_set_decision_group(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint32_t decision_group);
+void bitwuzla_set_default_decision_group(Bitwuzla *bitwuzla, uint32_t group);
+void bitwuzla_set_decision_group_propagation(Bitwuzla *bitwuzla, int propagate);
 
 void bitwuzla_dump_formula_smt_extended(Bitwuzla *bitwuzla, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file);
 
 #define BITWUZLA_SUPPORTS_HINTS 1
+#define BITWUZLA_SUPPORTS_REWEIGHTING 1
 
 /* -------------------------------------------------------------------------- */
 

@@ -465,7 +465,7 @@ RESTART:
         if (real_cur_subst->decision_group == 0 && bzla_node_real_addr(rebuilt)->decision_group != 0) {
           fprintf(stderr, "bzlasubst\n");
           fprintf(stderr,
-                  "rebuild: %p %s != %s",
+                  "rebuild: %p %s != %s\n",
                   &real_cur_subst->decision_group,
                   bzla_util_node2string(real_cur_subst),
                   bzla_util_node2string(rebuilt));

@@ -528,6 +528,11 @@ clone_exp(Bzla *clone,
     res->hint = bzla_bv_copy(mm, exp->hint);
   }
 
+  if (exp->decision_group) {
+    res->decision_group = exp->decision_group;
+  }
+
+
   /* ------------------- BZLA_VAR_NODE_STRUCT (all nodes) -----------------> */
   if (bzla_node_is_bv_const(exp))
   {
