@@ -702,6 +702,12 @@ bdcrec(BzlaDumpContext *bdc, BzlaNode *start, FILE *file)
         if (node->decision_group && bzla_node_is_bv(bdc->bzla, node)) {
           fprintf(file, "%d decisiongroup %d %d %d\n", ++bdc->maxid, bzla_node_bv_get_width(bdc->bzla, node), bdcid(bdc, node), node->decision_group);
         }
+
+#ifdef BZLA_SOURCE_TRACKING
+        if (node->source && bzla_node_is_bv(bdc->bzla, node)) {
+          fprintf(file, "%d source %d %d %lu\n", ++bdc->maxid, bzla_node_bv_get_width(bdc->bzla, node), bdcid(bdc, node), node->source);
+        }
+#endif
       }
     }
   }

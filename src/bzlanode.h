@@ -115,6 +115,14 @@ extern const char *const g_bzla_op2str[BZLA_NUM_OPS_NODE];
 
 /*------------------------------------------------------------------------*/
 
+#ifdef BZLA_SOURCE_TRACKING
+#define BZLA_SOURCE_TRACKING_MEMBER \
+    uint64_t source;    /* source tracking */   \
+
+#else
+#define BZLA_SOURCE_TRACKING_MEMBER
+#endif
+
 #define BZLA_NODE_STRUCT                                                   \
   struct                                                                   \
   {                                                                        \
@@ -135,6 +143,7 @@ extern const char *const g_bzla_op2str[BZLA_NUM_OPS_NODE];
     uint8_t bytes;                /* allocated bytes */                    \
     uint32_t decision_group;    /* change decision order in SAT solver*/   \
     BzlaBitVector *hint;    /* change decision in SAT solver*/   \
+    BZLA_SOURCE_TRACKING_MEMBER; \
     int32_t id;                   /* unique expression id */               \
     uint32_t refs;                /* reference counter (incl. ext_refs) */ \
     uint32_t ext_refs;            /* external references counter */        \

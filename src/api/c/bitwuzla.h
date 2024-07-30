@@ -4020,6 +4020,8 @@ void bitwuzla_set_decision_group_propagation(Bitwuzla *bitwuzla, int propagate);
 
 void bitwuzla_dump_formula_smt_extended(Bitwuzla *bitwuzla, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file);
 
+void bitwuzla_set_term_source(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint64_t source);
+
 #define BITWUZLA_SUPPORTS_HINTS 1
 #define BITWUZLA_SUPPORTS_REWEIGHTING 1
 

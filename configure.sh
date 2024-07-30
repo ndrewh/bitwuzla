@@ -26,6 +26,7 @@ prefix=
 path=
 
 testing=unknown
+sourcetrack=no
 
 cadical=unknown
 cms=unknown
@@ -169,6 +170,9 @@ do
     --testing) testing=yes;;
     --no-testing) testing=no;;
 
+    --sourcetrack) sourcetrack=yes;;
+    --no-sourcetrack) sourcetrack=no;;
+
     --docs) docs=yes;;
 
     --no-cadical)   cadical=no;;
@@ -217,6 +221,9 @@ cmake_opts="$CMAKE_OPTS"
 
 [ $testing = yes ] && cmake_opts="$cmake_opts -DTESTING=ON"
 [ $testing = no ] && cmake_opts="$cmake_opts -DTESTING=OFF"
+
+[ $sourcetrack = yes ] && cmake_opts="$cmake_opts -DSOURCETRACK=ON"
+[ $sourcetrack = no ] && cmake_opts="$cmake_opts -DSOURCETRACK=OFF"
 
 [ $cadical = yes ] && cmake_opts="$cmake_opts -DUSE_CADICAL=ON"
 [ $cms = yes ] && cmake_opts="$cmake_opts -DUSE_CMS=ON"

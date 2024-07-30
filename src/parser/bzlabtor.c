@@ -224,6 +224,27 @@ parse_positive_int(BzlaBZLAParser *parser, uint32_t *res_ptr)
 }
 
 static const char *
+parse_positive_int64(BzlaBZLAParser *parser, uint64_t *res_ptr)
+{
+  int32_t ch;
+  uint64_t res;
+
+  ch = nextch_btor(parser);
+  if (!isdigit(ch)) return perr_btor(parser, "expected digit");
+
+  if (ch == '0') return perr_btor(parser, "expected non zero digit");
+
+  res = ch - '0';
+
+  while (isdigit(ch = nextch_btor(parser))) res = 10 * res + (ch - '0');
+
+  savech_btor(parser, ch);
+  *res_ptr = res;
+
+  return 0;
+}
+
+static const char *
 parse_non_zero_int(BzlaBZLAParser *parser, int32_t *res_ptr)
 {
   int32_t res, sign, ch;
@@ -1637,6 +1658,32 @@ parse_decisiongroup(BzlaBZLAParser *parser, uint32_t width)
   return l;
 }
 
+static const BitwuzlaTerm *
+parse_source(BzlaBZLAParser *parser, uint32_t width)
+{
+  assert(width);
+
+  const BitwuzlaTerm *l;
+  uint64_t source;
+
+  if (parse_space(parser)) return 0;
+
+  if (!(l = parse_exp(parser, width, false, true, 0))) return 0;
+
+  if (parse_space(parser))
+  {
+  RELEASE_L_AND_RETURN_ERROR:
+    return 0;
+  }
+
+  if (parse_positive_int64(parser, &source))
+    goto RELEASE_L_AND_RETURN_ERROR;
+
+#if BZLA_SOURCE_TRACKING
+  bitwuzla_set_term_source(parser->bitwuzla, l, source);
+#endif
+  return l;
+}
 
 static void
 new_parser(BzlaBZLAParser *parser, BzlaOpParser op_parser, const char *op)
@@ -1778,6 +1825,7 @@ new_bzla_parser(Bitwuzla *bitwuzla)
   new_parser(res, parse_apply, "apply");
   new_parser(res, parse_hint, "hint");
   new_parser(res, parse_decisiongroup, "decisiongroup");
+  new_parser(res, parse_source, "source");
 
   return res;
 }

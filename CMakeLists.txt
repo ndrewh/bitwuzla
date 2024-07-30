@@ -47,6 +47,8 @@ option3vl(DOCS       "Build API documentation")
 
 option3vl(TESTING    "Configure unit and regression testing")
 
+option3vl(SOURCETRACK    "Track sources")
+
 option3vl(USE_CADICAL    "Use and link with CaDiCaL")
 option3vl(USE_CMS        "Use and link with CryptoMiniSat")
 option3vl(USE_LINGELING  "Use and link with Lingeling (default)")
@@ -206,6 +208,10 @@ endif()
 
 if(TIME_STATS)
   add_definitions("-DBZLA_TIME_STATISTICS")
+endif()
+
+if(SOURCETRACK)
+  add_definitions("-DBZLA_SOURCE_TRACKING")
 endif()
 
 include(CheckNoExportDynamic)

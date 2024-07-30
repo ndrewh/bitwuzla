@@ -5077,9 +5077,22 @@ void bitwuzla_set_decision_group(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, u
   }
 }
 
+// default: 0 (don't propagate)
 void bitwuzla_set_decision_group_propagation(Bitwuzla *bitwuzla, int propagate) {
   BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
 
   Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
   bzla->avmgr->amgr->propagate_decision_groups = propagate;
 }
+
+#ifdef BZLA_SOURCE_TRACKING
+void bitwuzla_set_term_source(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint64_t source) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+  BZLA_CHECK_ARG_NOT_NULL(term);
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  BzlaNode *exp = BZLA_IMPORT_BITWUZLA_TERM(term);
+  BzlaNode *real_exp = bzla_node_real_addr(exp);
+  real_exp->source = source;
+}
+#endif
