@@ -33,6 +33,8 @@
 #include "utils/bzlaunionfind.h"
 #include "utils/bzlautil.h"
 
+#include <ccadical.h>
+
 /*------------------------------------------------------------------------*/
 
 static BzlaFunSolver *
@@ -2785,6 +2787,8 @@ sat_fun_solver(BzlaFunSolver *slv)
 
       #ifdef CADICAL_HAS_DECISION_GROUPS
         ccadical_set_decision_group_weight(bzla_get_sat_mgr(bzla)->solver, group, weight);
+      #else
+        BZLA_ABORT(true, "Weighted decision groups are not supported in this build of CaDiCaL");
       #endif
       }
 
