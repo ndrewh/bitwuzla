@@ -22,6 +22,8 @@
 #include "utils/bzlahashptr.h"
 #include "utils/bzlautil.h"
 
+#include <ccadical.h>
+
 /*------------------------------------------------------------------------*/
 
 #define BZLA_INIT_AIG_UNIQUE_TABLE(mm, table) \
@@ -1099,7 +1101,12 @@ set_next_id_aig_mgr(BzlaAIGMgr *amgr, BzlaAIG *root)
 
     // ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, rand() % 5);
     if (root->decision_group) {
+      #ifdef CADICAL_HAS_DECISION_GROUPS
       ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, root->decision_group);
+      #else
+      Bzla *bzla = amgr->bzla;
+      BZLA_ABORT(1, "BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING requires cadical decision group support");
+      #endif
       // fprintf(stderr, "var %d has group %d\n", root->cnf_id, root->decision_group);
     }
 
