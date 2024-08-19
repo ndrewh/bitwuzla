@@ -144,8 +144,10 @@ struct Bzla
   /* Number of push/pop calls (used for unique symbol prefixes) */
   uint32_t num_push_pop;
 
-  /* Number of push/pop calls (used for unique symbol prefixes) */
   uint32_t new_exp_decision_group;
+#ifdef BZLA_SOURCE_TRACKING
+  uint32_t new_exp_source;
+#endif
 
 #ifndef NDEBUG
   Bzla *clone; /* shadow clone (debugging only) */

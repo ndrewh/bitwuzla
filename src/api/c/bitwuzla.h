@@ -4016,6 +4016,7 @@ int bitwuzla_set_hint_exp(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, const Bi
 
 void bitwuzla_set_decision_group(Bitwuzla *bitwuzla, const BitwuzlaTerm *term, uint32_t decision_group);
 void bitwuzla_set_default_decision_group(Bitwuzla *bitwuzla, uint32_t group);
+void bitwuzla_set_default_source(Bitwuzla *bitwuzla, uint64_t source);
 void bitwuzla_set_decision_group_propagation(Bitwuzla *bitwuzla, int propagate);
 
 void bitwuzla_dump_formula_smt_extended(Bitwuzla *bitwuzla, const BitwuzlaTerm **output_terms, int num_output_terms, FILE *file);

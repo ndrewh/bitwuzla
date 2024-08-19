@@ -4985,6 +4985,15 @@ void bitwuzla_set_default_decision_group(Bitwuzla *bitwuzla, uint32_t decision_g
   bzla->new_exp_decision_group = decision_group;
 }
 
+#ifdef BZLA_SOURCE_TRACKING
+void bitwuzla_set_default_source(Bitwuzla *bitwuzla, uint64_t source) {
+  BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
+
+  Bzla *bzla = BZLA_IMPORT_BITWUZLA(bitwuzla);
+  bzla->new_exp_source = source;
+}
+#endif
+
 void bitwuzla_set_decision_group_weight(Bitwuzla *bitwuzla, uint32_t decision_group, uint32_t weight) {
   BZLA_CHECK_ARG_NOT_NULL(bitwuzla);
 

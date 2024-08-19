@@ -2331,44 +2331,54 @@ bzla_simplify_exp(Bzla *bzla, BzlaNode *exp)
 static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
   assert(exp->av);
   assert(bzla_node_is_regular(exp));
+  assert(bzla_node_is_bv(bzla, exp));
 
-  if (exp->hint) {
-    BzlaBitVector *hint = exp->hint;
-    uint32_t decision_group = exp->decision_group;
+  if (!bzla_node_is_bv(bzla, exp)) return;
 
-    assert(bzla_node_is_bv(bzla, exp));
-    uint32_t width = bzla_node_bv_get_width(bzla, exp);
-    for (uint32_t i=0, j=width-1; i<width; i++, j--) {
-      BzlaAIG *aig = exp->av->aigs[i];
-      if (aig == BZLA_AIG_TRUE || aig == BZLA_AIG_FALSE) continue;
+  BzlaBitVector *hint = exp->hint;
+  uint32_t decision_group = exp->decision_group;
+#ifdef BZLA_SOURCE_TRACKING
+  uint64_t source = exp->source;
+#endif
 
-      BzlaAIG *real = BZLA_REAL_ADDR_AIG(aig);
+  uint32_t width = bzla_node_bv_get_width(bzla, exp);
+  for (uint32_t i=0, j=width-1; i<width; i++, j--) {
+    BzlaAIG *aig = exp->av->aigs[i];
+    if (aig == BZLA_AIG_TRUE || aig == BZLA_AIG_FALSE) continue;
 
-      if (hint) {
-        int new_hint;
-        if (BZLA_IS_INVERTED_AIG(aig)) {
-          new_hint = bzla_bv_get_bit(hint, j) ? 0 : 1;
-        } else {
-          new_hint = bzla_bv_get_bit(hint, j) ? 1 : 0;
-        }
+    BzlaAIG *real = BZLA_REAL_ADDR_AIG(aig);
 
-        if (real->has_hint && real->hint != new_hint) {
-          BZLALOG(2, "Hint mismatch %d %d\n", real->hint, new_hint);
-        }
-
-        if (bzla_node_is_bv_var(exp)) {
-          real->hint = new_hint;
-          real->has_hint = 1;
-        }
+    if (hint) {
+      int new_hint;
+      if (BZLA_IS_INVERTED_AIG(aig)) {
+        new_hint = bzla_bv_get_bit(hint, j) ? 0 : 1;
+      } else {
+        new_hint = bzla_bv_get_bit(hint, j) ? 1 : 0;
       }
 
-      if (decision_group) {
-        // We always intentionally overwrite the decision group that may have been
-        // propagated from the AIG children (see amgr->propagate_decision_groups)
-        real->decision_group = decision_group;
+      if (real->has_hint && real->hint != new_hint) {
+        BZLALOG(2, "Hint mismatch %d %d\n", real->hint, new_hint);
+      }
+
+      if (bzla_node_is_bv_var(exp)) {
+        real->hint = new_hint;
+        real->has_hint = 1;
       }
     }
 
+    if (decision_group) {
+      // We always intentionally overwrite the decision group that may have been
+      // propagated from the AIG children (see amgr->propagate_decision_groups)
+      real->decision_group = decision_group;
+    }
+#ifdef BZLA_SOURCE_TRACKING
+    if (source) {
+      real->source = source;
+    } else {
+      // warn: missing hint
+      // fprintf(stderr, "WARN: Missing source on %s\n", bzla_util_node2string(exp));
+    }
+#endif
   }
 
   if (bzla_node_is_bv_var(exp) && !exp->hint) {

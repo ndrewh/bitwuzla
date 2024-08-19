@@ -760,6 +760,12 @@ BZLA_AIG_TWO_LEVEL_OPT_TRY_AGAIN:
     if (amgr->propagate_decision_groups && left->decision_group && left->decision_group == right->decision_group) {
       res->decision_group = left->decision_group;
     }
+
+#ifdef BZLA_SOURCE_TRACKING
+    if (left->source && left->source == right->source && !res->source) {
+      res->source = (0xbad000ULL << 32) | left->source;
+    }
+#endif
   }
   else
   {
@@ -820,6 +826,7 @@ bzla_aig_mgr_new(Bzla *bzla)
   assert((size_t) BZLA_AIG_FALSE == 0);
   assert((size_t) BZLA_AIG_TRUE == 1);
   BZLA_INIT_STACK(bzla->mm, amgr->cnfid2aig);
+  BZLA_INIT_STACK(bzla->mm, amgr->cnfid2source);
   return amgr;
 }
 
@@ -893,6 +900,23 @@ clone_aigs(BzlaAIGMgr *amgr, BzlaAIGMgr *clone)
   assert(BZLA_SIZE_STACK(clone->cnfid2aig) == BZLA_SIZE_STACK(amgr->cnfid2aig));
   assert(BZLA_COUNT_STACK(clone->cnfid2aig)
          == BZLA_COUNT_STACK(amgr->cnfid2aig));
+
+#ifdef BZLA_SOURCE_TRACKING
+  /* clone cnfid2source table */
+  BZLA_INIT_STACK(mm, clone->cnfid2source);
+  size = BZLA_SIZE_STACK(amgr->cnfid2source);
+  if (size)
+  {
+    BZLA_CNEWN(mm, clone->cnfid2source.start, size);
+    clone->cnfid2source.end = clone->cnfid2source.start + size;
+    clone->cnfid2source.top = clone->cnfid2source.start;
+    memcpy(
+        clone->cnfid2source.start, amgr->cnfid2source.start, size * sizeof(uint64_t));
+  }
+  assert(BZLA_SIZE_STACK(clone->cnfid2source) == BZLA_SIZE_STACK(amgr->cnfid2source));
+  assert(BZLA_COUNT_STACK(clone->cnfid2source)
+         == BZLA_COUNT_STACK(amgr->cnfid2source));
+#endif
 }
 
 BzlaAIGMgr *
@@ -932,6 +956,9 @@ bzla_aig_mgr_delete(BzlaAIGMgr *amgr)
   bzla_sat_mgr_delete(amgr->smgr);
   BZLA_RELEASE_STACK(amgr->id2aig);
   BZLA_RELEASE_STACK(amgr->cnfid2aig);
+#ifdef BZLA_SOURCE_TRACKING
+  BZLA_RELEASE_STACK(amgr->cnfid2source);
+#endif
   BZLA_DELETE(mm, amgr);
 }
 
@@ -1091,6 +1118,13 @@ set_next_id_aig_mgr(BzlaAIGMgr *amgr, BzlaAIG *root)
   amgr->cnfid2aig.start[root->cnf_id] = root->id;
   assert(amgr->cnfid2aig.start[root->cnf_id] == root->id);
   amgr->num_cnf_vars++;
+
+#ifdef BZLA_SOURCE_TRACKING
+  BZLA_FIT_STACK(amgr->cnfid2source, (size_t) root->cnf_id);
+  amgr->cnfid2source.start[root->cnf_id] = root->source;
+  assert(amgr->cnfid2source.start[root->cnf_id] == root->source); // :thinkies:
+#endif
+
 }
 
 #ifdef BZLA_EXTRACT_TOP_LEVEL_MULTI_OR

@@ -170,6 +170,7 @@
 BZLA_DECLARE_STACK(BzlaInt, int32_t);
 
 BZLA_DECLARE_STACK(BzlaUInt, uint32_t);
+BZLA_DECLARE_STACK(BzlaUInt64, uint64_t);
 
 BZLA_DECLARE_STACK(BzlaChar, char);
 

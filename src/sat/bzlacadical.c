@@ -64,7 +64,7 @@ init(BzlaSATMgr *smgr)
     // ccadical_set_option(slv, "reweightonconflict", 1);
 
     ccadical_set_option(slv, "nobumpnondecisions", 1);
-    ccadical_set_option(slv, "autodecisiongroups", 1);
+    // ccadical_set_option(slv, "autodecisiongroups", 1);
   }
   // ccadical_set_option(slv, "compact", 0);
   // ccadical_set_option(slv, "probeonlydecidable", 1);
@@ -72,6 +72,9 @@ init(BzlaSATMgr *smgr)
   /* ccadical_set_option(slv, "rephaseint", 1e4); */
 
   // ccadical_set_option(slv, "verbose", 2);
+
+  // ccadical_set_option(slv, "chrono", 0);
+  // ccadical_set_option(slv, "chronoreusetrail", 0);
   // ccadical_set_option(slv, "log", 1);
 
 
@@ -103,10 +106,10 @@ deref(BzlaSATMgr *smgr, int32_t lit)
 static void
 enable_verbosity(BzlaSATMgr *smgr, int32_t level)
 {
-  if (level <= 1)
-    ccadical_set_option(smgr->solver, "quiet", 1);
-  else if (level >= 2)
-    ccadical_set_option(smgr->solver, "verbose", level - 2);
+  // if (level <= 1)
+  //   ccadical_set_option(smgr->solver, "quiet", 1);
+  // else if (level >= 2)
+  //   ccadical_set_option(smgr->solver, "verbose", level - 2);
 }
 
 static int32_t
@@ -126,6 +129,18 @@ static int32_t
 sat(BzlaSATMgr *smgr, int32_t limit)
 {
   (void) limit;
+
+  // For every SAT call, dump the source tracking info to source_tracking.txt
+#ifdef BZLA_SOURCE_TRACKING
+  if (getenv("BZLA_DUMP_SOURCE") && !strcmp(getenv("BZLA_DUMP_SOURCE"), "1")) {
+    FILE *f = fopen("source_tracking.txt", "w");
+    uint64_t *arr = smgr->bzla->avmgr->amgr->cnfid2source.start;
+    for (int i=1; i < smgr->maxvar; i++) {
+      fprintf(f, "%d %lx\n", i, arr[i]);
+    }
+    fclose(f);
+  }
+#endif
   return ccadical_sat(smgr->solver);
 }
 

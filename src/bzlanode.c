@@ -146,6 +146,9 @@ set_kind(Bzla *bzla, BzlaNode *exp, BzlaNodeKind kind)
   assert(!BZLA_INVALID_NODE);
 
   exp->decision_group = bzla->new_exp_decision_group;
+#ifdef BZLA_SOURCE_TRACKING
+  exp->source = bzla->new_exp_source;
+#endif
 
   if (exp->kind)
   {

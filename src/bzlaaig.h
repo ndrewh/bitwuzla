@@ -35,6 +35,9 @@ struct BzlaAIG
   uint8_t has_hint : 1;
   uint32_t decision_group; /* decision group for sat solver */
   uint32_t local;
+#ifdef BZLA_SOURCE_TRACKING
+  uint64_t source;
+#endif
   int32_t children[]; /* only allocated for AIG AND */
 };
 
@@ -58,6 +61,7 @@ struct BzlaAIGMgr
   BzlaSATMgr *smgr;
   BzlaAIGPtrStack id2aig; /* id to AIG node */
   BzlaIntStack cnfid2aig; /* cnf id to AIG id */
+  BzlaUInt64Stack cnfid2source; /* cnf id to source */
   uint8_t propagate_decision_groups: 1; // whether to propagate decision groups to AIG
 
   uint_least64_t cur_num_aigs;     /* current number of ANDs */

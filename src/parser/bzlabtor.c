@@ -851,6 +851,20 @@ parse_binary(BzlaBZLAParser *parser, BitwuzlaKind kind, uint32_t width)
   res = bitwuzla_mk_term2(parser->bitwuzla, kind, l, r);
   assert(bitwuzla_term_bv_get_size(res) == width);
 
+  static int env_checked = 0;
+  static int check;
+  if (!env_checked) {
+    check = getenv("BZLA_DECIDE_MUL_FIRST") ? 1 : 0;
+    env_checked = 1;
+    fprintf(stderr, "BZLA_DECIDE_MUL_FIRST=%d\n", check);
+  }
+  
+  if (check && kind == BITWUZLA_KIND_BV_MUL) {
+    bitwuzla_set_decision_group(parser->bitwuzla, l, 1); // set the condition to dg 1
+    bitwuzla_set_decision_group(parser->bitwuzla, r, 1); // set the condition to dg 1
+  }
+
+
   return res;
 }
 
@@ -1304,6 +1318,17 @@ parse_cond(BzlaBZLAParser *parser, uint32_t width)
   if (!(e = parse_exp(parser, width, false, true, 0)))
     goto RELEASE_C_AND_T_AND_RETURN_ERROR;
 
+  static int env_checked = 0;
+  static int check;
+  if (!env_checked) {
+    check = getenv("BZLA_DECIDE_ITE_FIRST") ? 1 : 0;
+    env_checked = 1;
+    fprintf(stderr, "BZLA_DECIDE_ITE_FIRST=%d\n", check);
+  }
+  
+  if (check)
+    bitwuzla_set_decision_group(parser->bitwuzla, c, 1); // set the condition to dg 1
+
   return bitwuzla_mk_term3(parser->bitwuzla, BITWUZLA_KIND_ITE, c, t, e);
 }
 
@@ -1654,7 +1679,17 @@ parse_decisiongroup(BzlaBZLAParser *parser, uint32_t width)
   if (parse_positive_int(parser, &dg))
     goto RELEASE_L_AND_RETURN_ERROR;
 
-  bitwuzla_set_decision_group(parser->bitwuzla, l, dg); // true -> frees r
+  static int env_checked = 0;
+  static int check;
+  if (!env_checked) {
+    check = getenv("BZLA_USE_DG") ? 1 : 0;
+    env_checked = 1;
+    fprintf(stderr, "BZLA_USE_DG=%d\n", check);
+  }
+  
+  if (check) {
+    bitwuzla_set_decision_group(parser->bitwuzla, l, dg); // true -> frees r
+  }
   return l;
 }
 

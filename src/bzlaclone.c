@@ -532,6 +532,12 @@ clone_exp(Bzla *clone,
     res->decision_group = exp->decision_group;
   }
 
+#ifdef BZLA_SOURCE_TRACKING
+  if (exp->source) {
+    res->source = exp->source;
+  }
+#endif
+
 
   /* ------------------- BZLA_VAR_NODE_STRUCT (all nodes) -----------------> */
   if (bzla_node_is_bv_const(exp))
@@ -1100,7 +1106,11 @@ clone_aux_bzla(Bzla *bzla,
           /* unique table chain */
           + amgr->table.size * sizeof(int32_t)
           + BZLA_SIZE_STACK(amgr->id2aig) * sizeof(BzlaAIG *)
-          + BZLA_SIZE_STACK(amgr->cnfid2aig) * sizeof(int32_t);
+          + BZLA_SIZE_STACK(amgr->cnfid2aig) * sizeof(int32_t)
+#ifdef BZLA_SOURCE_TRACKING
+          + BZLA_SIZE_STACK(amgr->cnfid2source) * sizeof(uint64_t)
+#endif
+          ;
 #ifdef BZLA_USE_LINGELING
       assert(strcmp(amgr->smgr->name, "Lingeling") == 0
              || strcmp(amgr->smgr->name, "DIMACS Printer") == 0);
