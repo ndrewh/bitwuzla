@@ -71,7 +71,9 @@ init(BzlaSATMgr *smgr)
 
   /* ccadical_set_option(slv, "rephaseint", 1e4); */
 
-  // ccadical_set_option(slv, "verbose", 2);
+  if (getenv("BZLA_CADICAL_VERBOSE") && !strcmp(getenv("BZLA_CADICAL_VERBOSE"), "1")) {
+    ccadical_set_option(slv, "verbose", 1);
+  }
 
   // ccadical_set_option(slv, "chrono", 0);
   // ccadical_set_option(slv, "chronoreusetrail", 0);
