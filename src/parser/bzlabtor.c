@@ -852,16 +852,25 @@ parse_binary(BzlaBZLAParser *parser, BitwuzlaKind kind, uint32_t width)
   assert(bitwuzla_term_bv_get_size(res) == width);
 
   static int env_checked = 0;
-  static int check;
+  static int check_mul;
+  static int check_div;
   if (!env_checked) {
-    check = getenv("BZLA_DECIDE_MUL_FIRST") ? 1 : 0;
+    check_mul = getenv("BZLA_DECIDE_MUL_FIRST") ? 1 : 0;
+    check_div = getenv("BZLA_DECIDE_DIV_FIRST") ? 1 : 0;
     env_checked = 1;
-    fprintf(stderr, "BZLA_DECIDE_MUL_FIRST=%d\n", check);
+    fprintf(stderr, "BZLA_DECIDE_MUL_FIRST=%d\n", check_mul);
+    fprintf(stderr, "BZLA_DECIDE_DIV_FIRST=%d\n", check_div);
   }
   
-  if (check && kind == BITWUZLA_KIND_BV_MUL) {
-    bitwuzla_set_decision_group(parser->bitwuzla, l, 1); // set the condition to dg 1
-    bitwuzla_set_decision_group(parser->bitwuzla, r, 1); // set the condition to dg 1
+  if (check_mul && kind == BITWUZLA_KIND_BV_MUL) {
+    bitwuzla_set_decision_group(parser->bitwuzla, l, 1); // set the left to dg 1
+    bitwuzla_set_decision_group(parser->bitwuzla, r, 1); // set the right to dg 1
+  }
+
+  if (check_div && kind == BITWUZLA_KIND_BV_UDIV || kind == BITWUZLA_KIND_BV_SDIV) {
+    bitwuzla_set_decision_group(parser->bitwuzla, l, 1); // set the left to dg 1
+    bitwuzla_set_decision_group(parser->bitwuzla, r, 1); // set the right to dg 1
+    bitwuzla_set_decision_group(parser->bitwuzla, res, 1); // set the res to dg 1
   }
 
 

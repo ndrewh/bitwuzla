@@ -472,6 +472,9 @@ RESTART:
           /* *(volatile uint64_t*)(0) = 42; // crash */
         }
         bzla_node_real_addr(rebuilt)->decision_group = real_cur_subst->decision_group;
+#ifdef BZLA_SOURCE_TRACKING
+        bzla_node_real_addr(rebuilt)->source = real_cur_subst->source;
+#endif
       }
       rebuilt = bzla_node_cond_invert(cur_subst, rebuilt);
 
