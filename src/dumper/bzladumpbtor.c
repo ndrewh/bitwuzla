@@ -686,6 +686,18 @@ bdcrec(BzlaDumpContext *bdc, BzlaNode *start, FILE *file)
       assert(bzla_node_is_regular(node));
       if (!bzla_node_is_args(node))
       {
+        // We set the source first, so that the source is processed before the node itself
+        // (so we propagate source through weird binary rewrites)
+#ifdef BZLA_SOURCE_TRACKING
+        if (node->source && bzla_node_is_bv(bdc->bzla, node)) {
+          fprintf(file, "%d source %d %lu\n", ++bdc->maxid, bzla_node_bv_get_width(bdc->bzla, node), node->source);
+        }
+#endif
+
+        if (node->decision_group && bzla_node_is_bv(bdc->bzla, node)) {
+          fprintf(file, "%d decisiongroup %d %d\n", ++bdc->maxid, bzla_node_bv_get_width(bdc->bzla, node), node->decision_group);
+        }
+
         (void) bdcid(bdc, node);
         bdcnode(bdc, node, file);
 
@@ -699,15 +711,6 @@ bdcrec(BzlaDumpContext *bdc, BzlaNode *start, FILE *file)
           fprintf(file, "%d hint %d %d %d\n", ++bdc->maxid, bzla_bv_get_width(node->hint), bdcid(bdc, node), hint_id);
         }
 
-        if (node->decision_group && bzla_node_is_bv(bdc->bzla, node)) {
-          fprintf(file, "%d decisiongroup %d %d %d\n", ++bdc->maxid, bzla_node_bv_get_width(bdc->bzla, node), bdcid(bdc, node), node->decision_group);
-        }
-
-#ifdef BZLA_SOURCE_TRACKING
-        if (node->source && bzla_node_is_bv(bdc->bzla, node)) {
-          fprintf(file, "%d source %d %d %lu\n", ++bdc->maxid, bzla_node_bv_get_width(bdc->bzla, node), bdcid(bdc, node), node->source);
-        }
-#endif
       }
     }
   }

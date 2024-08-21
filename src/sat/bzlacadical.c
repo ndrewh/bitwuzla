@@ -72,6 +72,7 @@ init(BzlaSATMgr *smgr)
   /* ccadical_set_option(slv, "rephaseint", 1e4); */
 
   if (getenv("BZLA_CADICAL_VERBOSE") && !strcmp(getenv("BZLA_CADICAL_VERBOSE"), "1")) {
+    fprintf(stderr, "Cadical will run in verbose mode.\n");
     ccadical_set_option(slv, "verbose", 1);
   }
 

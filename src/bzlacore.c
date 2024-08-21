@@ -2333,7 +2333,10 @@ static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
   assert(bzla_node_is_regular(exp));
   assert(bzla_node_is_bv(bzla, exp));
 
-  if (!bzla_node_is_bv(bzla, exp)) return;
+  if (!bzla_node_is_bv(bzla, exp)) {
+    fprintf(stderr, "WARN: Not a BV node %s\n", bzla_util_node2string(exp));
+    return;
+  }
 
   BzlaBitVector *hint = exp->hint;
   uint32_t decision_group = exp->decision_group;
@@ -2384,6 +2387,12 @@ static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
   if (bzla_node_is_bv_var(exp) && !exp->hint) {
     fprintf(stderr, "Missing hint on %s\n", bzla_node_get_symbol(bzla, exp));
   }
+
+#ifdef BZLA_SOURCE_TRACKING
+  if (!exp->source) {
+    fprintf(stderr, "Missing source on %s\n", bzla_util_node2string(exp));
+  }
+#endif
 }
 
 /*------------------------------------------------------------------------*/
@@ -2573,6 +2582,9 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
           if (restart) continue;
         }
 
+#ifdef BZLA_SOURCE_TRACKING
+        avmgr->amgr->default_source = cur->source;
+#endif
         if (cur->arity == 1)
         {
           assert(bzla_node_is_bv_slice(cur));
@@ -2705,6 +2717,9 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
             }
           }
         }
+#ifdef BZLA_SOURCE_TRACKING
+        avmgr->amgr->default_source = 0;
+#endif
       }
       assert(cur->av);
 

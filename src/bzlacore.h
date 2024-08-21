@@ -146,7 +146,7 @@ struct Bzla
 
   uint32_t new_exp_decision_group;
 #ifdef BZLA_SOURCE_TRACKING
-  uint32_t new_exp_source;
+  uint64_t new_exp_source;
 #endif
 
 #ifndef NDEBUG

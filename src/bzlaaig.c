@@ -73,6 +73,9 @@ setup_aig_and_add_to_id_table(BzlaAIGMgr *amgr, BzlaAIG *aig)
   BZLA_ABORT(id == INT32_MAX, "AIG id overflow");
   aig->refs = 1;
   aig->id   = id;
+#ifdef BZLA_SOURCE_TRACKING
+  aig->source = amgr->default_source;
+#endif
   BZLA_PUSH_STACK(amgr->id2aig, aig);
   assert(aig->id >= 0);
   assert(BZLA_COUNT_STACK(amgr->id2aig) == (size_t) aig->id + 1);
@@ -759,13 +762,13 @@ BZLA_AIG_TWO_LEVEL_OPT_TRY_AGAIN:
       res->has_hint = 1;
     }
 
-    if (amgr->propagate_decision_groups && left->decision_group && left->decision_group == right->decision_group) {
-      res->decision_group = left->decision_group;
+    if (amgr->propagate_decision_groups && real_left->decision_group && real_left->decision_group == real_right->decision_group) {
+      res->decision_group = real_left->decision_group;
     }
 
 #ifdef BZLA_SOURCE_TRACKING
-    if (left->source && left->source == right->source && !res->source) {
-      res->source = (0xbad000ULL << 32) | left->source;
+    if (real_left->source && real_left->source == real_right->source && !res->source) {
+      res->source = 0xbad0000000000000UL | (unsigned long)real_left->source;
     }
 #endif
   }

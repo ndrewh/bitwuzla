@@ -1668,16 +1668,7 @@ parse_decisiongroup(BzlaBZLAParser *parser, uint32_t width)
 
   if (parse_space(parser)) return 0;
 
-  if (!(l = parse_exp(parser, width, false, true, 0))) return 0;
-
-  if (parse_space(parser))
-  {
-  RELEASE_L_AND_RETURN_ERROR:
-    return 0;
-  }
-
-  if (parse_positive_int(parser, &dg))
-    goto RELEASE_L_AND_RETURN_ERROR;
+  if (parse_positive_int(parser, &dg)) return 0;
 
   static int env_checked = 0;
   static int check;
@@ -1688,9 +1679,9 @@ parse_decisiongroup(BzlaBZLAParser *parser, uint32_t width)
   }
   
   if (check) {
-    bitwuzla_set_decision_group(parser->bitwuzla, l, dg); // true -> frees r
+    bitwuzla_set_default_decision_group(parser->bitwuzla, dg);
   }
-  return l;
+  return (const BitwuzlaTerm *)0xbeef;
 }
 
 static const BitwuzlaTerm *
@@ -1703,21 +1694,12 @@ parse_source(BzlaBZLAParser *parser, uint32_t width)
 
   if (parse_space(parser)) return 0;
 
-  if (!(l = parse_exp(parser, width, false, true, 0))) return 0;
-
-  if (parse_space(parser))
-  {
-  RELEASE_L_AND_RETURN_ERROR:
-    return 0;
-  }
-
-  if (parse_positive_int64(parser, &source))
-    goto RELEASE_L_AND_RETURN_ERROR;
+  if (parse_positive_int64(parser, &source)) return 0;
 
 #if BZLA_SOURCE_TRACKING
-  bitwuzla_set_term_source(parser->bitwuzla, l, source);
+  bitwuzla_set_default_source(parser->bitwuzla, source);
 #endif
-  return l;
+  return (const BitwuzlaTerm *)0xbeef;
 }
 
 static void
@@ -2000,6 +1982,12 @@ NEXT:
   /* fprintf(stderr, "input %d id %d gp %d\n", parser->idx, bzla_node_get_id(e), decision_group); */
 
   /* bitwuzla_set_decision_group(parser->bitwuzla, 0); */
+  if ((uint64_t)e != 0xbeefUL) {
+    bitwuzla_set_default_decision_group(parser->bitwuzla, 0);
+#ifdef BZLA_SOURCE_TRACKING
+    bitwuzla_set_default_source(parser->bitwuzla, 0);
+#endif
+  }
 
   parser->exps.start[parser->idx] = e;
 

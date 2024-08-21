@@ -133,11 +133,18 @@ bzla_eliminate_slices_on_bv_vars(Bzla *bzla)
     b_var->data.flag = true;
   }
 
+#ifdef BZLA_SOURCE_TRACKING
+  uint64_t old_source = bzla->new_exp_source;
+#endif
+  uint64_t old_group = bzla->new_exp_decision_group;
   while (!BZLA_EMPTY_STACK(vars))
   {
     var = BZLA_POP_STACK(vars);
     if (!bzla_node_is_bv_var(var)) continue;
     bzla->new_exp_decision_group = var->decision_group;
+#ifdef BZLA_SOURCE_TRACKING
+    bzla->new_exp_source = var->source;
+#endif
 
     BZLALOG(2,
             "process %s (%s)",
@@ -329,5 +336,8 @@ bzla_eliminate_slices_on_bv_vars(Bzla *bzla)
   BZLA_MSG(bzla->msg, 1, "sliced %u variables in %1.f seconds", count, delta);
 
   // ahaberla (todo): should this have been set somewhere?
-  bzla->new_exp_decision_group = 0;
+  bzla->new_exp_decision_group = old_group;
+#ifdef BZLA_SOURCE_TRACKING
+  bzla->new_exp_source = old_source;
+#endif
 }

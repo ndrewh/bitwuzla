@@ -477,11 +477,20 @@ bzla_normalize_adds(Bzla *bzla)
     BZLA_PUSH_STACK(visit, cur);
   }
 
+#ifdef BZLA_SOURCE_TRACKING
+  uint64_t old_source = bzla->new_exp_source;
+#endif
+  uint64_t old_group = bzla->new_exp_decision_group;
   while (!BZLA_EMPTY_STACK(visit))
   {
     cur = bzla_node_real_addr(BZLA_POP_STACK(visit));
     id  = bzla_node_get_id(cur);
-    bzla->new_exp_decision_group = bzla_node_real_addr(cur)->decision_group;
+
+    // TODO: not actually sure if this is necessary
+    bzla->new_exp_decision_group = cur->decision_group;
+#ifdef BZLA_SOURCE_TRACKING
+    bzla->new_exp_source = cur->source;
+#endif
 
     if (bzla_hashint_table_contains(cache, id)) continue;
     bzla_hashint_table_add(cache, id);
@@ -505,5 +514,8 @@ bzla_normalize_adds(Bzla *bzla)
 
   double delta = bzla_util_time_stamp() - start;
   BZLA_MSG(bzla->msg, 1, "normalized adds in %.3f seconds", delta);
-  bzla->new_exp_decision_group = 0;
+  bzla->new_exp_decision_group = old_group;
+#ifdef BZLA_SOURCE_TRACKING
+  bzla->new_exp_source = old_source;
+#endif
 }
