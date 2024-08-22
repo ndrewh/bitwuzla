@@ -76,6 +76,7 @@ setup_aig_and_add_to_id_table(BzlaAIGMgr *amgr, BzlaAIG *aig)
 #ifdef BZLA_SOURCE_TRACKING
   aig->source = amgr->default_source;
 #endif
+  aig->decision_group = amgr->default_decision_group;
   BZLA_PUSH_STACK(amgr->id2aig, aig);
   assert(aig->id >= 0);
   assert(BZLA_COUNT_STACK(amgr->id2aig) == (size_t) aig->id + 1);
@@ -762,6 +763,7 @@ BZLA_AIG_TWO_LEVEL_OPT_TRY_AGAIN:
       res->has_hint = 1;
     }
 
+    // default: false
     if (amgr->propagate_decision_groups && real_left->decision_group && real_left->decision_group == real_right->decision_group) {
       res->decision_group = real_left->decision_group;
     }
@@ -832,6 +834,8 @@ bzla_aig_mgr_new(Bzla *bzla)
   assert((size_t) BZLA_AIG_TRUE == 1);
   BZLA_INIT_STACK(bzla->mm, amgr->cnfid2aig);
   BZLA_INIT_STACK(bzla->mm, amgr->cnfid2source);
+
+  amgr->propagate_decision_groups = (getenv("BZLA_PROPAGATE_DECISION_GROUPS") != NULL);
   return amgr;
 }
 
@@ -1106,11 +1110,11 @@ set_next_id_aig_mgr(BzlaAIGMgr *amgr, BzlaAIG *root)
     if (root->decision_group) {
       #ifdef CADICAL_HAS_DECISION_GROUPS
       ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, root->decision_group);
+      // fprintf(stderr, "var %d has group %d\n", root->cnf_id, root->decision_group);
       #else
       Bzla *bzla = amgr->bzla;
       BZLA_ABORT(1, "BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING requires cadical decision group support");
       #endif
-      // fprintf(stderr, "var %d has group %d\n", root->cnf_id, root->decision_group);
     }
 
   }

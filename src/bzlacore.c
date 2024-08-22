@@ -2585,6 +2585,7 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
 #ifdef BZLA_SOURCE_TRACKING
         avmgr->amgr->default_source = cur->source;
 #endif
+        avmgr->amgr->default_decision_group = cur->decision_group;
         if (cur->arity == 1)
         {
           assert(bzla_node_is_bv_slice(cur));
@@ -2720,6 +2721,7 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
 #ifdef BZLA_SOURCE_TRACKING
         avmgr->amgr->default_source = 0;
 #endif
+        avmgr->amgr->default_decision_group = 0;
       }
       assert(cur->av);
 

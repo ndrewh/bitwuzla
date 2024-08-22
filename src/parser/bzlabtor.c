@@ -848,9 +848,6 @@ parse_binary(BzlaBZLAParser *parser, BitwuzlaKind kind, uint32_t width)
   if (!(r = parse_exp(parser, width, false, true, 0)))
     goto RELEASE_L_AND_RETURN_ERROR;
 
-  res = bitwuzla_mk_term2(parser->bitwuzla, kind, l, r);
-  assert(bitwuzla_term_bv_get_size(res) == width);
-
   static int env_checked = 0;
   static int check_mul;
   static int check_div;
@@ -861,17 +858,26 @@ parse_binary(BzlaBZLAParser *parser, BitwuzlaKind kind, uint32_t width)
     fprintf(stderr, "BZLA_DECIDE_MUL_FIRST=%d\n", check_mul);
     fprintf(stderr, "BZLA_DECIDE_DIV_FIRST=%d\n", check_div);
   }
-  
+
   if (check_mul && kind == BITWUZLA_KIND_BV_MUL) {
-    bitwuzla_set_decision_group(parser->bitwuzla, l, 1); // set the left to dg 1
-    bitwuzla_set_decision_group(parser->bitwuzla, r, 1); // set the right to dg 1
+    bitwuzla_set_default_decision_group(parser->bitwuzla, 1);
   }
 
-  if (check_div && kind == BITWUZLA_KIND_BV_UDIV || kind == BITWUZLA_KIND_BV_SDIV) {
-    bitwuzla_set_decision_group(parser->bitwuzla, l, 1); // set the left to dg 1
-    bitwuzla_set_decision_group(parser->bitwuzla, r, 1); // set the right to dg 1
-    bitwuzla_set_decision_group(parser->bitwuzla, res, 1); // set the res to dg 1
+  if (check_div && (kind == BITWUZLA_KIND_BV_UDIV || kind == BITWUZLA_KIND_BV_SDIV)) {
+    bitwuzla_set_default_decision_group(parser->bitwuzla, 1);
   }
+
+  res = bitwuzla_mk_term2(parser->bitwuzla, kind, l, r);
+  assert(bitwuzla_term_bv_get_size(res) == width);
+  
+  if (check_mul && kind == BITWUZLA_KIND_BV_MUL) {
+    bitwuzla_set_default_decision_group(parser->bitwuzla, 0);
+  }
+
+  if (check_div && (kind == BITWUZLA_KIND_BV_UDIV || kind == BITWUZLA_KIND_BV_SDIV)) {
+    bitwuzla_set_default_decision_group(parser->bitwuzla, 0);
+  }
+
 
 
   return res;

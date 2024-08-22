@@ -66,7 +66,10 @@ struct BzlaAIGMgr
 
   uint_least64_t cur_num_aigs;     /* current number of ANDs */
   uint_least64_t cur_num_aig_vars; /* current number of AIG variables */
+#ifdef BZLA_SOURCE_TRACKING
   uint64_t default_source;
+#endif
+  uint32_t default_decision_group;
 
   /* statistics */
   uint_least64_t max_num_aigs;
