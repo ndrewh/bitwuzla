@@ -27,6 +27,7 @@ path=
 
 testing=unknown
 sourcetrack=no
+difficultytrack=no
 
 cadical=unknown
 cms=unknown
@@ -173,6 +174,9 @@ do
     --sourcetrack) sourcetrack=yes;;
     --no-sourcetrack) sourcetrack=no;;
 
+    --difficultytrack) difficultytrack=yes;;
+    --no-difficultytrack) difficultytrack=no;;
+
     --docs) docs=yes;;
 
     --no-cadical)   cadical=no;;
@@ -224,6 +228,9 @@ cmake_opts="$CMAKE_OPTS"
 
 [ $sourcetrack = yes ] && cmake_opts="$cmake_opts -DSOURCETRACK=ON"
 [ $sourcetrack = no ] && cmake_opts="$cmake_opts -DSOURCETRACK=OFF"
+
+[ $difficultytrack = yes ] && cmake_opts="$cmake_opts -DDIFFICULTYTRACK=ON"
+[ $difficultytrack = no ] && cmake_opts="$cmake_opts -DDIFFICULTYTRACK=OFF"
 
 [ $cadical = yes ] && cmake_opts="$cmake_opts -DUSE_CADICAL=ON"
 [ $cms = yes ] && cmake_opts="$cmake_opts -DUSE_CMS=ON"

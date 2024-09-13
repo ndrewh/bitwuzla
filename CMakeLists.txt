@@ -48,6 +48,7 @@ option3vl(DOCS       "Build API documentation")
 option3vl(TESTING    "Configure unit and regression testing")
 
 option3vl(SOURCETRACK    "Track sources")
+option3vl(DIFFICULTYTRACK    "Track difficulty during bitblasting")
 
 option3vl(USE_CADICAL    "Use and link with CaDiCaL")
 option3vl(USE_CMS        "Use and link with CryptoMiniSat")
@@ -212,6 +213,10 @@ endif()
 
 if(SOURCETRACK)
   add_definitions("-DBZLA_SOURCE_TRACKING")
+endif()
+
+if(DIFFICULTYTRACK)
+  add_definitions("-DBZLA_DIFFICULTY_TRACKING")
 endif()
 
 include(CheckNoExportDynamic)

@@ -32,6 +32,11 @@ new_aigvec(BzlaAIGVecMgr *avmgr, uint32_t width)
   result        = bzla_mem_malloc(avmgr->bzla->mm,
                            sizeof(BzlaAIGVec) + sizeof(BzlaAIG *) * width);
   result->width = width;
+#ifdef BZLA_DIFFICULTY_TRACKING
+  result->count_div = 0;
+  result->count_mul = 0;
+  result->count_ite = 0;
+#endif
   avmgr->cur_num_aigvecs++;
   if (avmgr->max_num_aigvecs < avmgr->cur_num_aigvecs)
     avmgr->max_num_aigvecs = avmgr->cur_num_aigvecs;

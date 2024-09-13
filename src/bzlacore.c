@@ -2328,6 +2328,67 @@ bzla_simplify_exp(Bzla *bzla, BzlaNode *exp)
   return result;
 }
 
+#ifdef BZLA_DIFFICULTY_TRACKING
+struct dtrack {
+  uint32_t count_ite;
+  uint32_t count_mul;
+  uint32_t count_div;
+};
+static void propagate_difficulty_in_aigvec(Bzla *bzla, BzlaNode *exp, struct dtrack *out) {
+    uint32_t count_ite = 0;
+    uint32_t count_mul = 0;
+    uint32_t count_div = 0;
+    for (int i=0; i<exp->arity; i++) {
+      BzlaAIGVec *av = bzla_node_real_addr(exp->e[i])->av;
+      count_ite += av->count_ite;
+      count_mul += av->count_mul;
+      count_div += av->count_div;
+    }
+
+    // TODO: could also try max(a, b) instead of a+b
+
+    switch (exp->kind) {
+      case BZLA_COND_NODE:
+        count_ite += 1;
+        break;
+      case BZLA_BV_MUL_NODE:
+        count_mul += 1;
+        break;
+      case BZLA_BV_UDIV_NODE:
+      case BZLA_BV_UREM_NODE:
+        count_div += 1;
+        break;
+      default:
+        break;
+    }
+
+    out->count_ite = count_ite;
+    out->count_mul = count_mul;
+    out->count_div = count_div;
+
+    static int init = 0;
+    static uint32_t ite_limit, mul_limit, div_limit, decision_groups_from_limits;
+    if (!init) {
+      ite_limit = getenv("BZLA_ITE_LIMIT") ? (uint32_t)atoi(getenv("BZLA_ITE_LIMIT")) : 0;
+      mul_limit = getenv("BZLA_MUL_LIMIT") ? (uint32_t)atoi(getenv("BZLA_MUL_LIMIT")) : 0;
+      div_limit = getenv("BZLA_DIV_LIMIT") ? (uint32_t)atoi(getenv("BZLA_DIV_LIMIT")) : 0;
+      decision_groups_from_limits = getenv("BZLA_DECISION_GROUPS_FROM_LIMITS") ? atoi(getenv("BZLA_DECISION_GROUPS_FROM_LIMITS")) : 0;
+    }
+
+    if (decision_groups_from_limits) {
+      exp->decision_group = !(count_ite > ite_limit || count_mul > mul_limit || count_div > div_limit);
+    }
+}
+
+static void update_aigvec_difficulty(Bzla *bzla, BzlaNode *exp, const struct dtrack *in) {
+  BzlaAIGVec *av = exp->av;
+  av->count_ite = in->count_ite;
+  av->count_mul = in->count_mul;
+  av->count_div = in->count_div;
+}
+
+#endif
+
 static void propagate_hints_to_aig(Bzla *bzla, BzlaNode *exp) {
   assert(exp->av);
   assert(bzla_node_is_regular(exp));
@@ -2585,6 +2646,10 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
 #ifdef BZLA_SOURCE_TRACKING
         avmgr->amgr->default_source = cur->source;
 #endif
+#ifdef BZLA_DIFFICULTY_TRACKING
+        struct dtrack tmp_difficulty;
+        propagate_difficulty_in_aigvec(bzla, cur, &tmp_difficulty);
+#endif
         avmgr->amgr->default_decision_group = cur->decision_group;
         if (cur->arity == 1)
         {
@@ -2722,6 +2787,7 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
         avmgr->amgr->default_source = 0;
 #endif
         avmgr->amgr->default_decision_group = 0;
+        update_aigvec_difficulty(bzla, cur, &tmp_difficulty);
       }
       assert(cur->av);
 

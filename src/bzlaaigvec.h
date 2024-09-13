@@ -19,9 +19,19 @@
 
 /*------------------------------------------------------------------------*/
 
+#ifdef BZLA_DIFFICULTY_TRACKING
+#define BZLA_DIFFICULTY_TRACKING_MEMBER \
+    uint32_t count_ite;    /* number of ITE in descendents */   \
+    uint32_t count_mul;    /* number of MUL in descendents */   \
+    uint32_t count_div;    /* number of DIV in descendents */
+#else
+#define BZLA_DIFFICULTY_TRACKING_MEMBER
+#endif
+
 struct BzlaAIGVec
 {
   uint32_t width;  /* width of the AIG vector (cf. bit-width) */
+BZLA_DIFFICULTY_TRACKING_MEMBER;
   BzlaAIG *aigs[]; /* vector of AIGs (MSB is at index 0) */
 };
 
