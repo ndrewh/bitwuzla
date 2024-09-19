@@ -2367,16 +2367,21 @@ static void propagate_difficulty_in_aigvec(Bzla *bzla, BzlaNode *exp, struct dtr
     out->count_div = count_div;
 
     static int init = 0;
-    static uint32_t ite_limit, mul_limit, div_limit, decision_groups_from_limits;
+    static uint32_t ite_limit, mul_limit, div_limit, decision_groups_from_limits, decision_groups_random_subset;
     if (!init) {
       ite_limit = getenv("BZLA_ITE_LIMIT") ? (uint32_t)atoi(getenv("BZLA_ITE_LIMIT")) : 0;
       mul_limit = getenv("BZLA_MUL_LIMIT") ? (uint32_t)atoi(getenv("BZLA_MUL_LIMIT")) : 0;
       div_limit = getenv("BZLA_DIV_LIMIT") ? (uint32_t)atoi(getenv("BZLA_DIV_LIMIT")) : 0;
       decision_groups_from_limits = getenv("BZLA_DECISION_GROUPS_FROM_LIMITS") ? atoi(getenv("BZLA_DECISION_GROUPS_FROM_LIMITS")) : 0;
+      decision_groups_random_subset = getenv("BZLA_DECISION_GROUPS_RANDOM_SUBSET") ? atoi(getenv("BZLA_DECISION_GROUPS_RANDOM_SUBSET")) : 0;
     }
 
     if (decision_groups_from_limits) {
       exp->decision_group = !(count_ite > ite_limit || count_mul > mul_limit || count_div > div_limit);
+    }
+
+    if (decision_groups_random_subset) {
+      exp->decision_group = ((rand() % decision_groups_random_subset) == 0);
     }
 }
 
@@ -2787,7 +2792,9 @@ bzla_synthesize_exp(Bzla *bzla, BzlaNode *exp, BzlaPtrHashTable *backannotation)
         avmgr->amgr->default_source = 0;
 #endif
         avmgr->amgr->default_decision_group = 0;
+#ifdef BZLA_DIFFICULTY_TRACKING
         update_aigvec_difficulty(bzla, cur, &tmp_difficulty);
+#endif
       }
       assert(cur->av);
 
