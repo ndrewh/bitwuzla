@@ -1107,6 +1107,7 @@ set_next_id_aig_mgr(BzlaAIGMgr *amgr, BzlaAIG *root)
     /* ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, root->decision_group); */
 
     // ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, rand() % 5);
+    static int dg_counter = 0;
     if (root->decision_group) {
       #ifdef CADICAL_HAS_DECISION_GROUPS
       ccadical_set_decision_group(amgr->smgr->solver, root->cnf_id, root->decision_group);
@@ -1115,6 +1116,13 @@ set_next_id_aig_mgr(BzlaAIGMgr *amgr, BzlaAIG *root)
       Bzla *bzla = amgr->bzla;
       BZLA_ABORT(1, "BZLA_OPT_SAT_ENGINE_DECISION_WEIGHTING requires cadical decision group support");
       #endif
+
+      if (root->decision_group) {
+        if (++dg_counter % 1000 == 0) {
+          fprintf(stderr, "dgs %d\n", dg_counter);
+        }
+      }
+
     }
 
   }

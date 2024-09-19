@@ -2333,16 +2333,26 @@ struct dtrack {
   uint32_t count_ite;
   uint32_t count_mul;
   uint32_t count_div;
+  uint32_t count_addsub;
 };
 static void propagate_difficulty_in_aigvec(Bzla *bzla, BzlaNode *exp, struct dtrack *out) {
     uint32_t count_ite = 0;
     uint32_t count_mul = 0;
     uint32_t count_div = 0;
+    uint32_t count_addsub = 0;
+    // for (int i=0; i<exp->arity; i++) {
+    //   BzlaAIGVec *av = bzla_node_real_addr(exp->e[i])->av;
+    //   count_ite += av->count_ite;
+    //   count_mul += av->count_mul;
+    //   count_div += av->count_div;
+    //   count_addsub += av->count_addsub;
+    // }
     for (int i=0; i<exp->arity; i++) {
       BzlaAIGVec *av = bzla_node_real_addr(exp->e[i])->av;
-      count_ite += av->count_ite;
-      count_mul += av->count_mul;
-      count_div += av->count_div;
+      count_ite = av->count_ite > count_ite ? av->count_ite : count_ite;
+      count_mul = av->count_mul > count_mul ? av->count_mul : count_mul;
+      count_div = av->count_div > count_div ? av->count_div : count_div;
+      count_addsub = av->count_addsub > count_addsub ? av->count_addsub : count_addsub;
     }
 
     // TODO: could also try max(a, b) instead of a+b
@@ -2358,6 +2368,9 @@ static void propagate_difficulty_in_aigvec(Bzla *bzla, BzlaNode *exp, struct dtr
       case BZLA_BV_UREM_NODE:
         count_div += 1;
         break;
+      case BZLA_BV_ADD_NODE:
+        count_addsub += 1;
+        break;
       default:
         break;
     }
@@ -2365,19 +2378,21 @@ static void propagate_difficulty_in_aigvec(Bzla *bzla, BzlaNode *exp, struct dtr
     out->count_ite = count_ite;
     out->count_mul = count_mul;
     out->count_div = count_div;
+    out->count_addsub = count_addsub;
 
     static int init = 0;
-    static uint32_t ite_limit, mul_limit, div_limit, decision_groups_from_limits, decision_groups_random_subset;
+    static uint32_t ite_limit, mul_limit, div_limit, addsub_limit, decision_groups_from_limits, decision_groups_random_subset;
     if (!init) {
       ite_limit = getenv("BZLA_ITE_LIMIT") ? (uint32_t)atoi(getenv("BZLA_ITE_LIMIT")) : 0;
       mul_limit = getenv("BZLA_MUL_LIMIT") ? (uint32_t)atoi(getenv("BZLA_MUL_LIMIT")) : 0;
       div_limit = getenv("BZLA_DIV_LIMIT") ? (uint32_t)atoi(getenv("BZLA_DIV_LIMIT")) : 0;
+      addsub_limit = getenv("BZLA_ADDSUB_LIMIT") ? (uint32_t)atoi(getenv("BZLA_ADDSUB_LIMIT")) : 0;
       decision_groups_from_limits = getenv("BZLA_DECISION_GROUPS_FROM_LIMITS") ? atoi(getenv("BZLA_DECISION_GROUPS_FROM_LIMITS")) : 0;
       decision_groups_random_subset = getenv("BZLA_DECISION_GROUPS_RANDOM_SUBSET") ? atoi(getenv("BZLA_DECISION_GROUPS_RANDOM_SUBSET")) : 0;
     }
 
     if (decision_groups_from_limits) {
-      exp->decision_group = !(count_ite > ite_limit || count_mul > mul_limit || count_div > div_limit);
+      exp->decision_group = !(count_ite > ite_limit || count_mul > mul_limit || count_div > div_limit || count_addsub > addsub_limit);
     }
 
     if (decision_groups_random_subset) {
@@ -2390,6 +2405,7 @@ static void update_aigvec_difficulty(Bzla *bzla, BzlaNode *exp, const struct dtr
   av->count_ite = in->count_ite;
   av->count_mul = in->count_mul;
   av->count_div = in->count_div;
+  av->count_addsub = in->count_addsub;
 }
 
 #endif
