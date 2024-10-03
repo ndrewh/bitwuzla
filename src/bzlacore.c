@@ -2383,20 +2383,20 @@ static void propagate_difficulty_in_aigvec(Bzla *bzla, BzlaNode *exp, struct dtr
     static int init = 0;
     static uint32_t ite_limit, mul_limit, div_limit, addsub_limit, decision_groups_from_limits, decision_groups_random_subset;
     if (!init) {
-      ite_limit = getenv("BZLA_ITE_LIMIT") ? (uint32_t)atoi(getenv("BZLA_ITE_LIMIT")) : 0;
-      mul_limit = getenv("BZLA_MUL_LIMIT") ? (uint32_t)atoi(getenv("BZLA_MUL_LIMIT")) : 0;
-      div_limit = getenv("BZLA_DIV_LIMIT") ? (uint32_t)atoi(getenv("BZLA_DIV_LIMIT")) : 0;
-      addsub_limit = getenv("BZLA_ADDSUB_LIMIT") ? (uint32_t)atoi(getenv("BZLA_ADDSUB_LIMIT")) : 0;
+      ite_limit = getenv("BZLA_ITE_LIMIT") ? (uint32_t)atoi(getenv("BZLA_ITE_LIMIT")) : UINT32_MAX;
+      mul_limit = getenv("BZLA_MUL_LIMIT") ? (uint32_t)atoi(getenv("BZLA_MUL_LIMIT")) : UINT32_MAX;
+      div_limit = getenv("BZLA_DIV_LIMIT") ? (uint32_t)atoi(getenv("BZLA_DIV_LIMIT")) : UINT32_MAX;
+      addsub_limit = getenv("BZLA_ADDSUB_LIMIT") ? (uint32_t)atoi(getenv("BZLA_ADDSUB_LIMIT")) : UINT32_MAX;
       decision_groups_from_limits = getenv("BZLA_DECISION_GROUPS_FROM_LIMITS") ? atoi(getenv("BZLA_DECISION_GROUPS_FROM_LIMITS")) : 0;
       decision_groups_random_subset = getenv("BZLA_DECISION_GROUPS_RANDOM_SUBSET") ? atoi(getenv("BZLA_DECISION_GROUPS_RANDOM_SUBSET")) : 0;
     }
 
     if (decision_groups_from_limits) {
-      exp->decision_group = !(count_ite > ite_limit || count_mul > mul_limit || count_div > div_limit || count_addsub > addsub_limit);
+      exp->decision_group |= !(count_ite > ite_limit || count_mul > mul_limit || count_div > div_limit || count_addsub > addsub_limit);
     }
 
     if (decision_groups_random_subset) {
-      exp->decision_group = ((rand() % decision_groups_random_subset) == 0);
+      exp->decision_group |= ((rand() % decision_groups_random_subset) == 0);
     }
 }
 
